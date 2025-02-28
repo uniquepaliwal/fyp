@@ -1,0 +1,32 @@
+<!-- Wappler include head-page="layouts/access" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="login" appConnect="local" components="{dmxBootstrap5Navigation:{}}" -->
+<meta name="ac:route" content="/login">
+
+<div class="d-flex flex-column p-2">
+    <h1>Chat Support - SignIn</h1>
+    <div class="tab-content mt-4 mb-3">
+        <div class="tab-pane fade show active" id="Email">
+            <div class="card">
+                <div class="card-body p-4">
+                    <form is="dmx-serverconnect-form" method="post" id="scFormLogin" action="/api/users/login" dmx-on:success="browser_access.goto(scFormLogin.data.default_page?scFormLogin.data.default_page:'/')">
+                        <div class="mb-3">
+                            <label class="form-label fs-6">Email address</label>
+                            <input name="email_id" type="email" class="form-control" required="">
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <label for="password" class="form-label fs-6">Password</label>
+                                <!-- <a href="/forgot-password" title="Reset your password" class="text-primary text-decoration-underline fs-7">Forgot password?</a> -->
+                            </div>
+                            <input name="pass" type="password" class="form-control" required="">
+                        </div>
+                        <button type="submit" class="btn btn-primary text-uppercase py-2 fs-5 w-100 mt-2">log in</button>
+                    </form>
+                    <div class="text-center mt-3">
+                        <a href="/register" title="#" class="text-primary text-decoration-underline">Register now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

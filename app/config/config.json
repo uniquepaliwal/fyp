@@ -1,0 +1,14 @@
+{
+  "debug": true,
+  "secret": "ukcxy0tmNrwtZMz",
+  "cors": {
+    "origin": "*"
+  },
+  "session": {
+    "store": {
+      "$type": "database",
+      "knex": "db",
+      "ttl": "86000"
+    }
+  }
+}

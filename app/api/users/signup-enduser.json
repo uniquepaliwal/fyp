@@ -1,0 +1,459 @@
+{
+  "meta": {
+    "options": {
+      "linkedFile": "/views/register.ejs",
+      "linkedForm": "signup"
+    },
+    "$_GET": [
+      {
+        "type": "text",
+        "name": "sort"
+      },
+      {
+        "type": "text",
+        "name": "dir"
+      }
+    ],
+    "$_POST": [
+      {
+        "type": "text",
+        "fieldName": "firstName",
+        "options": {
+          "rules": {
+            "core:required": {
+              "param": ""
+            }
+          }
+        },
+        "name": "firstName"
+      },
+      {
+        "type": "text",
+        "fieldName": "lastName",
+        "options": {
+          "rules": {
+            "core:required": {
+              "param": ""
+            }
+          }
+        },
+        "name": "lastName"
+      },
+      {
+        "type": "text",
+        "fieldName": "email",
+        "options": {
+          "rules": {
+            "core:required": {
+              "param": ""
+            },
+            "core:email": {}
+          }
+        },
+        "name": "email"
+      },
+      {
+        "type": "text",
+        "fieldName": "password",
+        "options": {
+          "rules": {
+            "core:required": {
+              "param": ""
+            }
+          }
+        },
+        "name": "password"
+      },
+      {
+        "type": "text",
+        "fieldName": "company_code",
+        "name": "company_code"
+      }
+    ]
+  },
+  "exec": {
+    "steps": [
+      {
+        "name": "qFindExistEmail",
+        "module": "dbconnector",
+        "action": "select",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "type": "select",
+            "columns": [
+              {
+                "table": "app.m_user",
+                "column": "user_id",
+                "recid": 1
+              }
+            ],
+            "params": [
+              {
+                "operator": "equal",
+                "type": "expression",
+                "name": ":P1",
+                "value": "{{$_POST.email}}",
+                "test": ""
+              }
+            ],
+            "table": {
+              "name": "app.m_user"
+            },
+            "primary": "user_id",
+            "joins": [],
+            "wheres": {
+              "condition": "AND",
+              "rules": [
+                {
+                  "id": "app.m_user.email_id",
+                  "field": "app.m_user.email_id",
+                  "type": "string",
+                  "operator": "equal",
+                  "value": "{{$_POST.email}}",
+                  "data": {
+                    "table": "app.m_user",
+                    "column": "email_id",
+                    "type": "text",
+                    "columnObj": {
+                      "type": "string",
+                      "maxLength": 254,
+                      "primary": false,
+                      "unique": false,
+                      "nullable": true,
+                      "name": "email_id"
+                    }
+                  },
+                  "operation": "="
+                }
+              ],
+              "conditional": null,
+              "valid": true
+            },
+            "query": "select \"user_id\" from \"app\".\"m_user\" where \"app\".\"m_user\".\"email_id\" = ?"
+          }
+        },
+        "output": true,
+        "meta": [
+          {
+            "type": "text",
+            "name": "user_id"
+          }
+        ],
+        "outputType": "array"
+      },
+      {
+        "name": "",
+        "module": "core",
+        "action": "condition",
+        "options": {
+          "if": "{{qFindExistEmail[0].user_id==null}}",
+          "then": {
+            "steps": [
+              {
+                "name": "hashPassword",
+                "module": "crypto",
+                "action": "passwordHash",
+                "options": {
+                  "password": "{{$_POST.password}}"
+                },
+                "outputType": "text",
+                "output": true
+              },
+              {
+                "name": "ipAdd",
+                "module": "core",
+                "action": "setvalue",
+                "options": {
+                  "value": "{{$_SERVER.REMOTE_ADDR}}",
+                  "key": "ipAdd"
+                },
+                "meta": [],
+                "outputType": "text",
+                "output": true
+              },
+              {
+                "name": "",
+                "module": "core",
+                "action": "condition",
+                "options": {
+                  "if": "{{$_POST.company_code=='icon'}}",
+                  "then": {
+                    "steps": {
+                      "name": "insert_role_1",
+                      "module": "dbupdater",
+                      "action": "insert",
+                      "options": {
+                        "connection": "db",
+                        "sql": {
+                          "type": "insert",
+                          "values": [
+                            {
+                              "table": "app.m_user",
+                              "column": "username",
+                              "type": "text",
+                              "value": "{{$_POST.firstName.titlecase() + $_POST.lastName.titlecase()}}"
+                            },
+                            {
+                              "table": "app.m_user",
+                              "column": "password",
+                              "type": "text",
+                              "value": "{{hashPassword}}"
+                            },
+                            {
+                              "table": "app.m_user",
+                              "column": "first_name",
+                              "type": "text",
+                              "value": "{{$_POST.firstName.capitalize()}}"
+                            },
+                            {
+                              "table": "app.m_user",
+                              "column": "last_name",
+                              "type": "text",
+                              "value": "{{$_POST.lastName.capitalize()}}"
+                            },
+                            {
+                              "table": "app.m_user",
+                              "column": "email_id",
+                              "type": "text",
+                              "value": "{{$_POST.email}}"
+                            },
+                            {
+                              "table": "app.m_user",
+                              "column": "last_login_time",
+                              "type": "datetime",
+                              "value": "{{NOW_UTC}}"
+                            },
+                            {
+                              "table": "app.m_user",
+                              "column": "role_id",
+                              "type": "number",
+                              "value": "1"
+                            },
+                            {
+                              "table": "app.m_user",
+                              "column": "last_login_ip",
+                              "type": "text",
+                              "value": "{{ipAdd}}"
+                            }
+                          ],
+                          "table": "app.m_user",
+                          "returning": "user_id",
+                          "query": "insert into \"app\".\"m_user\" (\"email_id\", \"first_name\", \"last_login_ip\", \"last_login_time\", \"last_name\", \"password\", \"role_id\", \"username\") values (?, ?, ?, ?, ?, ?, ?, ?) returning \"user_id\"",
+                          "params": [
+                            {
+                              "name": ":P1",
+                              "type": "expression",
+                              "value": "{{$_POST.firstName.titlecase() + $_POST.lastName.titlecase()}}",
+                              "test": ""
+                            },
+                            {
+                              "name": ":P2",
+                              "type": "expression",
+                              "value": "{{hashPassword}}",
+                              "test": ""
+                            },
+                            {
+                              "name": ":P3",
+                              "type": "expression",
+                              "value": "{{$_POST.firstName.capitalize()}}",
+                              "test": ""
+                            },
+                            {
+                              "name": ":P4",
+                              "type": "expression",
+                              "value": "{{$_POST.lastName.capitalize()}}",
+                              "test": ""
+                            },
+                            {
+                              "name": ":P5",
+                              "type": "expression",
+                              "value": "{{$_POST.email}}",
+                              "test": ""
+                            },
+                            {
+                              "name": ":P6",
+                              "type": "expression",
+                              "value": "{{NOW_UTC}}",
+                              "test": ""
+                            },
+                            {
+                              "name": ":P7",
+                              "type": "expression",
+                              "value": "{{ipAdd}}",
+                              "test": ""
+                            }
+                          ]
+                        }
+                      },
+                      "meta": [
+                        {
+                          "name": "identity",
+                          "type": "text"
+                        },
+                        {
+                          "name": "affected",
+                          "type": "number"
+                        }
+                      ],
+                      "output": false
+                    }
+                  },
+                  "else": {
+                    "steps": {
+                      "name": "insert_role_2",
+                      "module": "dbupdater",
+                      "action": "insert",
+                      "options": {
+                        "connection": "db",
+                        "sql": {
+                          "type": "insert",
+                          "values": [
+                            {
+                              "table": "app.m_user",
+                              "column": "username",
+                              "type": "text",
+                              "value": "{{$_POST.firstName.titlecase() + $_POST.lastName.titlecase()}}"
+                            },
+                            {
+                              "table": "app.m_user",
+                              "column": "password",
+                              "type": "text",
+                              "value": "{{hashPassword}}"
+                            },
+                            {
+                              "table": "app.m_user",
+                              "column": "first_name",
+                              "type": "text",
+                              "value": "{{$_POST.firstName.capitalize()}}"
+                            },
+                            {
+                              "table": "app.m_user",
+                              "column": "last_name",
+                              "type": "text",
+                              "value": "{{$_POST.lastName.capitalize()}}"
+                            },
+                            {
+                              "table": "app.m_user",
+                              "column": "email_id",
+                              "type": "text",
+                              "value": "{{$_POST.email}}"
+                            },
+                            {
+                              "table": "app.m_user",
+                              "column": "last_login_time",
+                              "type": "datetime",
+                              "value": "{{NOW_UTC}}"
+                            },
+                            {
+                              "table": "app.m_user",
+                              "column": "role_id",
+                              "type": "number",
+                              "value": "2"
+                            },
+                            {
+                              "table": "app.m_user",
+                              "column": "last_login_ip",
+                              "type": "text",
+                              "value": "{{ipAdd}}"
+                            }
+                          ],
+                          "table": "app.m_user",
+                          "returning": "user_id",
+                          "query": "insert into \"app\".\"m_user\" (\"email_id\", \"first_name\", \"last_login_ip\", \"last_login_time\", \"last_name\", \"password\", \"role_id\", \"username\") values (?, ?, ?, ?, ?, ?, ?, ?) returning \"user_id\"",
+                          "params": [
+                            {
+                              "name": ":P1",
+                              "type": "expression",
+                              "value": "{{$_POST.firstName.titlecase() + $_POST.lastName.titlecase()}}",
+                              "test": ""
+                            },
+                            {
+                              "name": ":P2",
+                              "type": "expression",
+                              "value": "{{hashPassword}}",
+                              "test": ""
+                            },
+                            {
+                              "name": ":P3",
+                              "type": "expression",
+                              "value": "{{$_POST.firstName.capitalize()}}",
+                              "test": ""
+                            },
+                            {
+                              "name": ":P4",
+                              "type": "expression",
+                              "value": "{{$_POST.lastName.capitalize()}}",
+                              "test": ""
+                            },
+                            {
+                              "name": ":P5",
+                              "type": "expression",
+                              "value": "{{$_POST.email}}",
+                              "test": ""
+                            },
+                            {
+                              "name": ":P6",
+                              "type": "expression",
+                              "value": "{{NOW_UTC}}",
+                              "test": ""
+                            },
+                            {
+                              "name": ":P7",
+                              "type": "expression",
+                              "value": "{{ipAdd}}",
+                              "test": ""
+                            }
+                          ]
+                        }
+                      },
+                      "meta": [
+                        {
+                          "name": "identity",
+                          "type": "text"
+                        },
+                        {
+                          "name": "affected",
+                          "type": "number"
+                        }
+                      ],
+                      "output": false
+                    }
+                  }
+                },
+                "outputType": "boolean"
+              },
+              {
+                "name": "identity",
+                "module": "auth",
+                "action": "login",
+                "options": {
+                  "provider": "login",
+                  "username": "{{$_POST.email}}",
+                  "remember": ""
+                },
+                "output": true,
+                "meta": []
+              }
+            ]
+          },
+          "else": {
+            "steps": {
+              "name": "alreadyExistEmail",
+              "module": "core",
+              "action": "response",
+              "options": {
+                "status": 401,
+                "data": "Email you entered already exists! Please try to login instead."
+              }
+            }
+          }
+        },
+        "outputType": "boolean"
+      }
+    ]
+  },
+  "usedModules": {
+    "argon2": "^0.30.2"
+  }
+}

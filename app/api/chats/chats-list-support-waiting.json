@@ -1,0 +1,167 @@
+{
+  "meta": {
+    "$_GET": [
+      {
+        "type": "text",
+        "name": "sort"
+      },
+      {
+        "type": "text",
+        "name": "dir"
+      },
+      {
+        "type": "text",
+        "name": "search"
+      }
+    ]
+  },
+  "exec": {
+    "steps": [
+      {
+        "name": "checkLogin",
+        "module": "core",
+        "action": "exec",
+        "options": {
+          "exec": "check-access"
+        },
+        "output": false
+      },
+      {
+        "name": "cChatListSupport",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "SELECT \n    mu.first_name || ' ' || mu.last_name as end_user_name,\n    mcr.name as chat_name,\n    mcr.chat_room_id ,\n    MAX(tm.created_on) AS last_message_time\nFROM app.m_chat_room mcr\nLEFT JOIN app.p_chat_participant pcp ON mcr.chat_room_id = pcp.chat_room_id \nLEFT JOIN app.m_user mu ON pcp.user_id = mu.user_id \nleft join app.t_message tm on mu.user_id = tm.sender_id \nWHERE mu.role_id = 2 and mcr.not_waiting = false and LOWER(mu.first_name) Like concat(:P2::text,'%')\nGROUP BY mcr.chat_room_id, mcr.name, mu.first_name, mu.last_name\norder by last_message_time desc",
+            "params": [
+              {
+                "name": ":P1",
+                "value": "{{identity}}",
+                "test": "19fbe4f8-7732-4953-a388-a08806e15ffa"
+              },
+              {
+                "name": ":P2",
+                "value": "{{$_GET.search.lowercase().default('')}}",
+                "test": "a"
+              }
+            ]
+          }
+        },
+        "output": false,
+        "meta": [
+          {
+            "name": "end_user_name",
+            "type": "text"
+          },
+          {
+            "name": "chat_name",
+            "type": "text"
+          },
+          {
+            "name": "chat_room_id",
+            "type": "text"
+          },
+          {
+            "name": "last_message_time",
+            "type": "datetime"
+          }
+        ],
+        "outputType": "array"
+      },
+      {
+        "name": "chatArray",
+        "module": "arraylist",
+        "action": "create",
+        "options": {},
+        "meta": [],
+        "outputType": "array"
+      },
+      {
+        "name": "repeat",
+        "module": "core",
+        "action": "repeat",
+        "options": {
+          "repeat": "{{cChatListSupport}}",
+          "outputFields": [],
+          "exec": {
+            "steps": [
+              {
+                "name": "singleChat",
+                "module": "core",
+                "action": "setvalue",
+                "options": {
+                  "key": "singleChat",
+                  "value": {
+                    "chat_room_id": "{{chat_room_id}}",
+                    "chat_name": "{{chat_name}}",
+                    "end_user_name": "{{end_user_name}}",
+                    "message_time": "{{last_message_time}}"
+                  }
+                },
+                "meta": [],
+                "outputType": "object"
+              },
+              {
+                "name": "",
+                "module": "arraylist",
+                "action": "add",
+                "options": {
+                  "ref": "chatArray",
+                  "value": "{{singleChat}}"
+                }
+              }
+            ]
+          }
+        },
+        "output": false,
+        "meta": [
+          {
+            "name": "$index",
+            "type": "number"
+          },
+          {
+            "name": "$number",
+            "type": "number"
+          },
+          {
+            "name": "$name",
+            "type": "text"
+          },
+          {
+            "name": "$value",
+            "type": "object"
+          },
+          {
+            "name": "end_user_name",
+            "type": "text"
+          },
+          {
+            "name": "chat_name",
+            "type": "text"
+          },
+          {
+            "name": "chat_room_id",
+            "type": "text"
+          },
+          {
+            "name": "last_message_time",
+            "type": "datetime"
+          }
+        ],
+        "outputType": "array"
+      },
+      {
+        "name": "finalChatList",
+        "module": "arraylist",
+        "action": "value",
+        "options": {
+          "ref": "chatArray"
+        },
+        "output": true,
+        "meta": [],
+        "outputType": "array"
+      }
+    ]
+  }
+}

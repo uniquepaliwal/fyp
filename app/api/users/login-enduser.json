@@ -1,0 +1,128 @@
+{
+  "meta": {
+    "$_GET": [
+      {
+        "type": "text",
+        "name": "sort"
+      },
+      {
+        "type": "text",
+        "name": "dir"
+      }
+    ],
+    "$_POST": [
+      {
+        "type": "text",
+        "name": "email"
+      },
+      {
+        "type": "text",
+        "name": "password"
+      },
+      {
+        "type": "text",
+        "name": "user_id"
+      }
+    ]
+  },
+  "exec": {
+    "steps": [
+      {
+        "name": "identity",
+        "module": "auth",
+        "action": "login",
+        "options": {
+          "provider": "login",
+          "remember": 1,
+          "username": "{{$_POST.email}}"
+        },
+        "output": true,
+        "meta": []
+      },
+      {
+        "name": "ipAdd",
+        "module": "core",
+        "action": "setvalue",
+        "options": {
+          "key": "ipAdd",
+          "value": "{{$_SERVER.REMOTE_ADDR}}"
+        },
+        "meta": [],
+        "outputType": "text",
+        "output": false
+      },
+      {
+        "name": "updateIP",
+        "module": "dbupdater",
+        "action": "update",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "type": "update",
+            "values": [
+              {
+                "table": "app.m_user",
+                "column": "last_login_ip",
+                "type": "text",
+                "value": "{{ipAdd}}",
+                "recid": 1
+              },
+              {
+                "table": "app.m_user",
+                "column": "last_login_time",
+                "type": "datetime",
+                "value": "{{NOW_UTC}}",
+                "recid": 2
+              }
+            ],
+            "table": "app.m_user",
+            "wheres": {
+              "condition": "AND",
+              "rules": [
+                {
+                  "id": "user_id",
+                  "type": "string",
+                  "operator": "equal",
+                  "value": "{{$_POST.user_id}}",
+                  "data": {
+                    "column": "user_id"
+                  },
+                  "operation": "="
+                }
+              ]
+            },
+            "returning": "user_id",
+            "query": "update \"app\".\"m_user\" set \"last_login_ip\" = ?, \"last_login_time\" = ? where \"user_id\" = ? returning \"user_id\"",
+            "params": [
+              {
+                "name": ":P1",
+                "type": "expression",
+                "value": "{{ipAdd}}",
+                "test": ""
+              },
+              {
+                "name": ":P2",
+                "type": "expression",
+                "value": "{{NOW_UTC}}",
+                "test": ""
+              },
+              {
+                "operator": "equal",
+                "type": "expression",
+                "name": ":P3",
+                "value": "{{$_POST.user_id}}",
+                "test": ""
+              }
+            ]
+          }
+        },
+        "meta": [
+          {
+            "name": "affected",
+            "type": "number"
+          }
+        ]
+      }
+    ]
+  }
+}

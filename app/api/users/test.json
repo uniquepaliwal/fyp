@@ -1,0 +1,12 @@
+{
+  "name": "id",
+  "module": "core",
+  "action": "setvalue",
+  "options": {
+    "key": "id",
+    "value": "{{identity}}"
+  },
+  "meta": [],
+  "outputType": "text",
+  "output": true
+}

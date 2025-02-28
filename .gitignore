@@ -1,0 +1,8 @@
+node_modules
+.DS_Store
+*.pdf
+*.crt
+*db.json
+.env
+.env-prod
+.env-dev

@@ -1,0 +1,22 @@
+[
+  {
+    "name": "room_support",
+    "module": "core",
+    "action": "setvalue",
+    "options": {
+      "key": "room_support",
+      "value": "room_support"
+    },
+    "meta": [],
+    "outputType": "text"
+  },
+  {
+    "name": "identity",
+    "module": "auth",
+    "action": "identify",
+    "options": {
+      "provider": "login"
+    },
+    "meta": []
+  }
+]

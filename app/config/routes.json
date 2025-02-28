@@ -1,0 +1,45 @@
+{
+  "routes": [
+    {
+      "path": "/chatbot",
+      "page": "chatbot",
+      "layout": "main"
+    },
+    {
+      "path": "/login",
+      "page": "login",
+      "layout": "access"
+    },
+    {
+      "path": "/register",
+      "page": "register",
+      "layout": "access"
+    },
+    {
+      "path": "/forgot-password",
+      "page": "forgot-password",
+      "layout": "access"
+    },
+    {
+      "path": "/bot",
+      "page": "bot",
+      "layout": "main"
+    },
+    {
+      "path": "/transcripts",
+      "page": "transcripts",
+      "layout": "main"
+    },
+    {
+      "path": "/waiting-room",
+      "page": "waiting-room",
+      "layout": "main"
+    },
+    {
+      "path": "*",
+      "name": "default-page",
+      "page": "comming-soon",
+      "layout": "main"
+    }
+  ]
+}

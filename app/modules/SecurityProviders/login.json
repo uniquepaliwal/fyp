@@ -1,0 +1,30 @@
+{
+  "name": "login",
+  "module": "auth",
+  "action": "provider",
+  "options": {
+    "secret": "qB4bfgcao3Ry6NC",
+    "provider": "Database",
+    "connection": "db",
+    "users": {
+      "table": "app.m_user",
+      "identity": "user_id",
+      "username": "email_id",
+      "password": "password"
+    },
+    "permissions": {
+      "dd": {
+        "table": "app.m_user",
+        "identity": "user_id",
+        "conditions": []
+      }
+    },
+    "passwordVerify": true
+  },
+  "meta": [
+    {
+      "name": "identity",
+      "type": "text"
+    }
+  ]
+}

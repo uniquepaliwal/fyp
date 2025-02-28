@@ -1,0 +1,1535 @@
+{
+  "meta": {
+    "$_PARAM": [
+      {
+        "type": "text",
+        "name": "message"
+      },
+      {
+        "type": "text",
+        "name": "chat_room_id"
+      },
+      {
+        "type": "text",
+        "name": "user_id"
+      },
+      {
+        "type": "text",
+        "name": "username"
+      },
+      {
+        "type": "text",
+        "name": "type-ad"
+      }
+    ]
+  },
+  "exec": {
+    "steps": [
+      {
+        "name": "socket_identity",
+        "module": "sockets",
+        "action": "identify",
+        "options": {}
+      },
+      {
+        "name": "user_identity",
+        "module": "core",
+        "action": "setvalue",
+        "options": {
+          "key": "user_identity",
+          "value": "{{identity?identity:$_PARAM.user_id}}"
+        },
+        "meta": [],
+        "outputType": "text"
+      },
+      {
+        "name": "",
+        "module": "core",
+        "action": "condition",
+        "options": {
+          "if": "{{$_PARAM.chat_room_id==null}}",
+          "then": {
+            "steps": {
+              "name": "qChatRoomID",
+              "module": "dbconnector",
+              "action": "select",
+              "options": {
+                "connection": "db",
+                "sql": {
+                  "type": "select",
+                  "columns": [
+                    {
+                      "table": "m_chat_room",
+                      "column": "chat_room_id",
+                      "schema": "app",
+                      "recid": 1
+                    }
+                  ],
+                  "params": [
+                    {
+                      "operator": "equal",
+                      "type": "expression",
+                      "name": ":P1",
+                      "value": "{{user_identity}}",
+                      "test": ""
+                    }
+                  ],
+                  "table": {
+                    "name": "m_chat_room",
+                    "schema": "app"
+                  },
+                  "primary": "chat_room_id",
+                  "joins": [
+                    {
+                      "table": "p_chat_participant",
+                      "column": "*",
+                      "type": "INNER",
+                      "clauses": {
+                        "condition": "AND",
+                        "rules": [
+                          {
+                            "table": "p_chat_participant",
+                            "column": "chat_room_id",
+                            "operator": "equal",
+                            "operation": "=",
+                            "value": {
+                              "table": "m_chat_room",
+                              "column": "chat_room_id"
+                            },
+                            "schema": "app"
+                          }
+                        ]
+                      },
+                      "primary": "participant_id",
+                      "schema": "app"
+                    }
+                  ],
+                  "wheres": {
+                    "condition": "AND",
+                    "rules": [
+                      {
+                        "id": "app.p_chat_participant.user_id",
+                        "field": "app.p_chat_participant.user_id",
+                        "type": "string",
+                        "operator": "equal",
+                        "value": "{{user_identity}}",
+                        "data": {
+                          "table": "p_chat_participant",
+                          "column": "user_id",
+                          "type": "text",
+                          "columnObj": {
+                            "type": "reference",
+                            "primary": false,
+                            "unique": false,
+                            "nullable": true,
+                            "references": "user_id",
+                            "inTable": "m_user",
+                            "referenceType": "uuid",
+                            "onUpdate": "NO ACTION",
+                            "onDelete": "CASCADE",
+                            "name": "user_id"
+                          },
+                          "schema": "app"
+                        },
+                        "operation": "=",
+                        "table": "m_chat_room"
+                      }
+                    ],
+                    "conditional": null,
+                    "valid": true
+                  },
+                  "query": "select \"app\".\"m_chat_room\".\"chat_room_id\" from \"app\".\"m_chat_room\" inner join \"app\".\"p_chat_participant\" on \"app\".\"p_chat_participant\".\"chat_room_id\" = \"m_chat_room\".\"chat_room_id\" where \"app\".\"p_chat_participant\".\"user_id\" = ?"
+                }
+              },
+              "output": false,
+              "meta": [
+                {
+                  "type": "text",
+                  "name": "chat_room_id"
+                }
+              ],
+              "outputType": "array",
+              "type": "dbconnector_select"
+            }
+          }
+        },
+        "outputType": "boolean",
+        "output": false
+      },
+      {
+        "name": "chat_id",
+        "module": "core",
+        "action": "setvalue",
+        "options": {
+          "key": "chat_id",
+          "value": "{{$_PARAM.chat_room_id.default(qChatRoomID[0].chat_room_id)}}"
+        },
+        "meta": [],
+        "outputType": "text",
+        "output": false
+      },
+      {
+        "name": "iMessage",
+        "module": "dbupdater",
+        "action": "insert",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "type": "insert",
+            "values": [
+              {
+                "table": "app.t_message",
+                "column": "chat_room_id",
+                "type": "number",
+                "value": "{{chat_id}}",
+                "recid": 1
+              },
+              {
+                "table": "app.t_message",
+                "column": "sender_id",
+                "type": "text",
+                "value": "{{user_identity}}",
+                "recid": 2
+              },
+              {
+                "table": "app.t_message",
+                "column": "content",
+                "type": "text",
+                "value": "{{$_PARAM.message}}",
+                "recid": 3
+              },
+              {
+                "table": "app.t_message",
+                "column": "created_on",
+                "type": "datetime",
+                "value": "{{NOW_UTC}}",
+                "recid": 4
+              }
+            ],
+            "table": "app.t_message",
+            "returning": "message_id",
+            "query": "insert into \"app\".\"t_message\" (\"chat_room_id\", \"content\", \"created_on\", \"sender_id\") values (?, ?, ?, ?) returning \"message_id\"",
+            "params": [
+              {
+                "name": ":P1",
+                "type": "expression",
+                "value": "{{chat_id}}",
+                "test": ""
+              },
+              {
+                "name": ":P2",
+                "type": "expression",
+                "value": "{{user_identity}}",
+                "test": ""
+              },
+              {
+                "name": ":P3",
+                "type": "expression",
+                "value": "{{$_PARAM.message}}",
+                "test": ""
+              },
+              {
+                "name": ":P4",
+                "type": "expression",
+                "value": "{{NOW_UTC}}",
+                "test": ""
+              }
+            ]
+          }
+        },
+        "meta": [
+          {
+            "name": "identity",
+            "type": "text"
+          },
+          {
+            "name": "affected",
+            "type": "number"
+          }
+        ]
+      },
+      {
+        "name": "qOtherMemberUserId",
+        "module": "dbconnector",
+        "action": "select",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "type": "select",
+            "columns": [
+              {
+                "table": "MU",
+                "column": "socket_id"
+              },
+              {
+                "table": "MU",
+                "column": "first_name"
+              },
+              {
+                "table": "MU",
+                "column": "last_name"
+              },
+              {
+                "table": "MU",
+                "column": "user_id"
+              },
+              {
+                "table": "MU",
+                "column": "role_id"
+              }
+            ],
+            "params": [
+              {
+                "operator": "equal",
+                "type": "expression",
+                "name": ":P1",
+                "value": "{{chat_id}}",
+                "test": ""
+              },
+              {
+                "operator": "not_equal",
+                "type": "expression",
+                "name": ":P2",
+                "value": "{{user_identity}}",
+                "test": ""
+              }
+            ],
+            "table": {
+              "name": "p_chat_participant",
+              "schema": "app",
+              "alias": "PCP"
+            },
+            "primary": "participant_id",
+            "joins": [
+              {
+                "table": "m_user",
+                "column": "*",
+                "alias": "MU",
+                "type": "LEFT",
+                "clauses": {
+                  "condition": "AND",
+                  "rules": [
+                    {
+                      "table": "MU",
+                      "column": "user_id",
+                      "operator": "equal",
+                      "operation": "=",
+                      "value": {
+                        "table": "PCP",
+                        "column": "user_id"
+                      }
+                    }
+                  ]
+                },
+                "primary": "user_id",
+                "schema": "app"
+              }
+            ],
+            "query": "select \"MU\".\"socket_id\", \"MU\".\"first_name\", \"MU\".\"last_name\", \"MU\".\"user_id\", \"MU\".\"role_id\" from \"app\".\"p_chat_participant\" as \"PCP\" left join \"app\".\"m_user\" as \"MU\" on \"MU\".\"user_id\" = \"PCP\".\"user_id\" where \"PCP\".\"chat_room_id\" = ? and \"PCP\".\"is_active_memeber\" = ? and \"PCP\".\"user_id\" <> ?",
+            "wheres": {
+              "condition": "AND",
+              "rules": [
+                {
+                  "id": "PCP.chat_room_id",
+                  "field": "PCP.chat_room_id",
+                  "type": "string",
+                  "operator": "equal",
+                  "value": "{{chat_id}}",
+                  "data": {
+                    "table": "PCP",
+                    "column": "chat_room_id",
+                    "type": "text",
+                    "columnObj": {
+                      "type": "reference",
+                      "primary": false,
+                      "unique": false,
+                      "nullable": true,
+                      "references": "chat_room_id",
+                      "inTable": "m_chat_room",
+                      "referenceType": "uuid",
+                      "onUpdate": "NO ACTION",
+                      "onDelete": "CASCADE",
+                      "name": "chat_room_id"
+                    }
+                  },
+                  "operation": "="
+                },
+                {
+                  "id": "PCP.is_active_memeber",
+                  "field": "PCP.is_active_memeber",
+                  "type": "boolean",
+                  "operator": "equal",
+                  "value": true,
+                  "data": {
+                    "table": "PCP",
+                    "column": "is_active_memeber",
+                    "type": "boolean",
+                    "columnObj": {
+                      "type": "boolean",
+                      "primary": false,
+                      "unique": false,
+                      "nullable": true,
+                      "name": "is_active_memeber"
+                    }
+                  },
+                  "operation": "="
+                },
+                {
+                  "id": "PCP.user_id",
+                  "field": "PCP.user_id",
+                  "type": "string",
+                  "operator": "not_equal",
+                  "value": "{{user_identity}}",
+                  "data": {
+                    "table": "PCP",
+                    "column": "user_id",
+                    "type": "text",
+                    "columnObj": {
+                      "type": "reference",
+                      "primary": false,
+                      "unique": false,
+                      "nullable": true,
+                      "references": "user_id",
+                      "inTable": "m_user",
+                      "referenceType": "uuid",
+                      "onUpdate": "NO ACTION",
+                      "onDelete": "CASCADE",
+                      "name": "user_id"
+                    }
+                  },
+                  "operation": "<>"
+                }
+              ],
+              "conditional": null,
+              "valid": true
+            }
+          }
+        },
+        "output": false,
+        "meta": [
+          {
+            "type": "text",
+            "name": "socket_id"
+          },
+          {
+            "type": "text",
+            "name": "first_name"
+          },
+          {
+            "type": "text",
+            "name": "last_name"
+          },
+          {
+            "type": "text",
+            "name": "user_id"
+          },
+          {
+            "type": "number",
+            "name": "role_id"
+          }
+        ],
+        "outputType": "array"
+      },
+      {
+        "name": "queryMyDetails",
+        "module": "dbconnector",
+        "action": "single",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "type": "select",
+            "columns": [
+              {
+                "table": "m_user",
+                "column": "first_name",
+                "schema": "app",
+                "recid": 1
+              },
+              {
+                "table": "m_user",
+                "column": "last_name",
+                "schema": "app",
+                "recid": 2
+              }
+            ],
+            "params": [
+              {
+                "operator": "equal",
+                "type": "expression",
+                "name": ":P1",
+                "value": "{{user_identity}}",
+                "test": ""
+              }
+            ],
+            "table": {
+              "name": "m_user",
+              "schema": "app"
+            },
+            "primary": "user_id",
+            "joins": [],
+            "wheres": {
+              "condition": "AND",
+              "rules": [
+                {
+                  "id": "app.m_user.user_id",
+                  "field": "app.m_user.user_id",
+                  "type": "string",
+                  "operator": "equal",
+                  "value": "{{user_identity}}",
+                  "data": {
+                    "table": "m_user",
+                    "column": "user_id",
+                    "type": "text",
+                    "columnObj": {
+                      "type": "uuid",
+                      "default": "gen_random_uuid()",
+                      "primary": true,
+                      "unique": true,
+                      "nullable": false,
+                      "name": "user_id"
+                    },
+                    "schema": "app"
+                  },
+                  "operation": "=",
+                  "table": "m_user"
+                }
+              ],
+              "conditional": null,
+              "valid": true
+            },
+            "query": "select \"first_name\", \"last_name\" from \"app\".\"m_user\" where \"app\".\"m_user\".\"user_id\" = ?"
+          }
+        },
+        "output": false,
+        "meta": [
+          {
+            "type": "text",
+            "name": "first_name"
+          },
+          {
+            "type": "text",
+            "name": "last_name"
+          }
+        ],
+        "outputType": "object",
+        "type": "dbconnector_single"
+      },
+      {
+        "name": "msg1",
+        "module": "sockets",
+        "action": "message",
+        "options": {
+          "socketId": "{{socket_identity}}",
+          "eventName": "chat_message",
+          "params": {
+            "message": "{{qOtherMemberUserId}}"
+          }
+        },
+        "disabled": true
+      },
+      {
+        "name": "",
+        "module": "core",
+        "action": "condition",
+        "options": {
+          "if": "{{qOtherMemberUserId[0].role_id==3}}",
+          "then": {
+            "steps": [
+              {
+                "name": "queryLastMessages",
+                "module": "dbconnector",
+                "action": "select",
+                "options": {
+                  "connection": "db",
+                  "sql": {
+                    "type": "select",
+                    "columns": [
+                      {
+                        "table": "MU",
+                        "column": "role_id"
+                      },
+                      {
+                        "table": "TM",
+                        "column": "content"
+                      }
+                    ],
+                    "params": [
+                      {
+                        "operator": "equal",
+                        "type": "expression",
+                        "name": ":P1",
+                        "value": "{{chat_id}}",
+                        "test": ""
+                      }
+                    ],
+                    "table": {
+                      "name": "t_message",
+                      "schema": "app",
+                      "alias": "TM"
+                    },
+                    "primary": "message_id",
+                    "joins": [
+                      {
+                        "table": "m_user",
+                        "column": "*",
+                        "alias": "MU",
+                        "type": "LEFT",
+                        "clauses": {
+                          "condition": "AND",
+                          "rules": [
+                            {
+                              "table": "MU",
+                              "column": "user_id",
+                              "operator": "equal",
+                              "operation": "=",
+                              "value": {
+                                "table": "TM",
+                                "column": "sender_id"
+                              }
+                            }
+                          ]
+                        },
+                        "primary": "user_id",
+                        "schema": "app"
+                      }
+                    ],
+                    "wheres": {
+                      "condition": "AND",
+                      "rules": [
+                        {
+                          "id": "TM.chat_room_id",
+                          "field": "TM.chat_room_id",
+                          "type": "string",
+                          "operator": "equal",
+                          "value": "{{chat_id}}",
+                          "data": {
+                            "table": "TM",
+                            "column": "chat_room_id",
+                            "type": "text",
+                            "columnObj": {
+                              "type": "reference",
+                              "primary": false,
+                              "unique": false,
+                              "nullable": true,
+                              "references": "chat_room_id",
+                              "inTable": "m_chat_room",
+                              "referenceType": "uuid",
+                              "onUpdate": "NO ACTION",
+                              "onDelete": "CASCADE",
+                              "name": "chat_room_id"
+                            }
+                          },
+                          "operation": "=",
+                          "table": "t_message"
+                        }
+                      ],
+                      "conditional": null,
+                      "valid": true
+                    },
+                    "query": "select \"MU\".\"role_id\", \"TM\".\"content\" from \"app\".\"t_message\" as \"TM\" left join \"app\".\"m_user\" as \"MU\" on \"MU\".\"user_id\" = \"TM\".\"sender_id\" where \"TM\".\"chat_room_id\" = ? order by \"TM\".\"created_on\" ASC",
+                    "orders": [
+                      {
+                        "table": "TM",
+                        "column": "created_on",
+                        "direction": "ASC"
+                      }
+                    ]
+                  }
+                },
+                "output": false,
+                "meta": [
+                  {
+                    "type": "number",
+                    "name": "role_id"
+                  },
+                  {
+                    "type": "text",
+                    "name": "content"
+                  }
+                ],
+                "outputType": "array"
+              },
+              {
+                "name": "moduleGptResponse",
+                "module": "gptuser",
+                "action": "final_response",
+                "options": {
+                  "userQuery": "{{$_PARAM.message}}",
+                  "userMemory": "{{queryLastMessages}}"
+                }
+              },
+              {
+                "name": "",
+                "module": "core",
+                "action": "condition",
+                "options": {
+                  "if": "{{moduleGptResponse.type==1}}",
+                  "then": {
+                    "steps": {
+                      "name": "update",
+                      "module": "dbupdater",
+                      "action": "update",
+                      "options": {
+                        "connection": "db",
+                        "sql": {
+                          "type": "update",
+                          "values": [
+                            {
+                              "table": "app.m_user",
+                              "column": "first_name",
+                              "type": "text",
+                              "value": "{{moduleGptResponse.data.first_name}}",
+                              "condition": "{{moduleGptResponse.data.first_name}}"
+                            },
+                            {
+                              "table": "app.m_user",
+                              "column": "last_name",
+                              "type": "text",
+                              "value": "{{moduleGptResponse.data.last_name}}",
+                              "condition": "{{moduleGptResponse.data.last_name}}"
+                            },
+                            {
+                              "table": "app.m_user",
+                              "column": "email_id",
+                              "type": "text",
+                              "value": "{{moduleGptResponse.data.email_id}}",
+                              "condition": "{{moduleGptResponse.data.email_id}}"
+                            },
+                            {
+                              "table": "app.m_user",
+                              "column": "updated_on",
+                              "type": "datetime",
+                              "value": "{{NOW_UTC}}"
+                            }
+                          ],
+                          "table": "app.m_user",
+                          "wheres": {
+                            "condition": "AND",
+                            "rules": [
+                              {
+                                "id": "user_id",
+                                "field": "user_id",
+                                "type": "string",
+                                "operator": "equal",
+                                "value": "{{user_identity}}",
+                                "data": {
+                                  "column": "user_id"
+                                },
+                                "operation": "="
+                              }
+                            ],
+                            "conditional": null,
+                            "valid": true
+                          },
+                          "returning": "user_id",
+                          "query": "update \"app\".\"m_user\" set \"first_name\" = ?, \"last_name\" = ?, \"email_id\" = ?, \"updated_on\" = ? where \"user_id\" = ?",
+                          "params": [
+                            {
+                              "name": ":P1",
+                              "type": "expression",
+                              "value": "{{moduleGptResponse.data.first_name}}",
+                              "test": ""
+                            },
+                            {
+                              "name": ":P2",
+                              "type": "expression",
+                              "value": "{{moduleGptResponse.data.last_name}}",
+                              "test": ""
+                            },
+                            {
+                              "name": ":P3",
+                              "type": "expression",
+                              "value": "{{moduleGptResponse.data.email_id}}",
+                              "test": ""
+                            },
+                            {
+                              "name": ":P4",
+                              "type": "expression",
+                              "value": "{{NOW_UTC}}",
+                              "test": ""
+                            },
+                            {
+                              "operator": "equal",
+                              "type": "expression",
+                              "name": ":P5",
+                              "value": "{{user_identity}}",
+                              "test": ""
+                            }
+                          ]
+                        }
+                      },
+                      "meta": [
+                        {
+                          "name": "affected",
+                          "type": "number"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "outputType": "boolean"
+              },
+              {
+                "name": "iMessageAddGptResponseToDb",
+                "module": "dbupdater",
+                "action": "insert",
+                "options": {
+                  "connection": "db",
+                  "sql": {
+                    "type": "insert",
+                    "values": [
+                      {
+                        "table": "app.t_message",
+                        "column": "chat_room_id",
+                        "type": "number",
+                        "value": "{{chat_id}}",
+                        "recid": 1
+                      },
+                      {
+                        "table": "app.t_message",
+                        "column": "sender_id",
+                        "type": "text",
+                        "value": "{{qOtherMemberUserId[0].user_id}}",
+                        "recid": 2
+                      },
+                      {
+                        "table": "app.t_message",
+                        "column": "content",
+                        "type": "text",
+                        "value": "{{moduleGptResponse.gpt_solution}}",
+                        "recid": 3
+                      },
+                      {
+                        "table": "app.t_message",
+                        "column": "created_on",
+                        "type": "datetime",
+                        "value": "{{NOW_UTC}}",
+                        "recid": 4
+                      }
+                    ],
+                    "table": "app.t_message",
+                    "returning": "message_id",
+                    "query": "insert into \"app\".\"t_message\" (\"chat_room_id\", \"content\", \"created_on\", \"sender_id\") values (?, ?, ?, ?) returning \"message_id\"",
+                    "params": [
+                      {
+                        "name": ":P1",
+                        "type": "expression",
+                        "value": "{{chat_id}}",
+                        "test": ""
+                      },
+                      {
+                        "name": ":P2",
+                        "type": "expression",
+                        "value": "{{qOtherMemberUserId[0].user_id}}",
+                        "test": ""
+                      },
+                      {
+                        "name": ":P3",
+                        "type": "expression",
+                        "value": "{{moduleGptResponse.gpt_solution}}",
+                        "test": ""
+                      },
+                      {
+                        "name": ":P4",
+                        "type": "expression",
+                        "value": "{{NOW_UTC}}",
+                        "test": ""
+                      }
+                    ]
+                  }
+                },
+                "meta": [
+                  {
+                    "name": "identity",
+                    "type": "text"
+                  },
+                  {
+                    "name": "affected",
+                    "type": "number"
+                  }
+                ]
+              },
+              {
+                "name": "msg_sending_reply_to_enduser",
+                "module": "sockets",
+                "action": "message",
+                "options": {
+                  "eventName": "chat_message",
+                  "params": {
+                    "username": "Ai",
+                    "message": "{{moduleGptResponse.gpt_solution?moduleGptResponse.gpt_solution:'Sorry we are unable to response now, please try again after sometime.'}}"
+                  },
+                  "socketId": "{{socket_identity}}"
+                }
+              }
+            ]
+          },
+          "else": {
+            "steps": {
+              "name": "",
+              "module": "core",
+              "action": "condition",
+              "options": {
+                "if": "{{qOtherMemberUserId[0].socket_id}}",
+                "then": {
+                  "steps": {
+                    "name": "msg",
+                    "module": "sockets",
+                    "action": "message",
+                    "options": {
+                      "socketId": "{{qOtherMemberUserId[0].socket_id,qOtherMemberUserId[0].socket_id}}",
+                      "eventName": "chat_message",
+                      "params": {
+                        "message": "{{$_PARAM.message}}",
+                        "chat_room_id": "{{chat_id}}",
+                        "username": "{{queryMyDetails.first_name+' '+queryMyDetails.last_name}}",
+                        "type-ad": "direct-message"
+                      }
+                    }
+                  }
+                },
+                "else": {
+                  "steps": [
+                    {
+                      "name": "qIsChatInWaiting",
+                      "module": "dbconnector",
+                      "action": "select",
+                      "options": {
+                        "connection": "db",
+                        "sql": {
+                          "type": "select",
+                          "columns": [
+                            {
+                              "table": "m_chat_room",
+                              "column": "not_waiting",
+                              "schema": "app",
+                              "recid": 1
+                            }
+                          ],
+                          "params": [
+                            {
+                              "operator": "equal",
+                              "type": "expression",
+                              "name": ":P1",
+                              "value": "{{chat_id}}",
+                              "test": ""
+                            }
+                          ],
+                          "table": {
+                            "name": "m_chat_room",
+                            "schema": "app"
+                          },
+                          "primary": "chat_room_id",
+                          "joins": [],
+                          "wheres": {
+                            "condition": "AND",
+                            "rules": [
+                              {
+                                "id": "app.m_chat_room.chat_room_id",
+                                "field": "app.m_chat_room.chat_room_id",
+                                "type": "string",
+                                "operator": "equal",
+                                "value": "{{chat_id}}",
+                                "data": {
+                                  "table": "m_chat_room",
+                                  "column": "chat_room_id",
+                                  "type": "text",
+                                  "columnObj": {
+                                    "type": "uuid",
+                                    "default": "gen_random_uuid()",
+                                    "primary": true,
+                                    "unique": true,
+                                    "nullable": false,
+                                    "name": "chat_room_id"
+                                  },
+                                  "schema": "app"
+                                },
+                                "operation": "=",
+                                "table": "m_chat_room"
+                              }
+                            ],
+                            "conditional": null,
+                            "valid": true
+                          },
+                          "query": "select \"not_waiting\" from \"app\".\"m_chat_room\" where \"app\".\"m_chat_room\".\"chat_room_id\" = ?"
+                        }
+                      },
+                      "output": false,
+                      "meta": [
+                        {
+                          "type": "boolean",
+                          "name": "not_waiting"
+                        }
+                      ],
+                      "outputType": "array"
+                    },
+                    {
+                      "name": "queryChatGptUserId",
+                      "module": "dbconnector",
+                      "action": "single",
+                      "options": {
+                        "connection": "db",
+                        "sql": {
+                          "type": "select",
+                          "columns": [
+                            {
+                              "table": "m_user",
+                              "column": "user_id",
+                              "schema": "app",
+                              "recid": 1
+                            }
+                          ],
+                          "params": [],
+                          "table": {
+                            "name": "m_user",
+                            "schema": "app"
+                          },
+                          "primary": "user_id",
+                          "joins": [],
+                          "wheres": {
+                            "condition": "AND",
+                            "rules": [
+                              {
+                                "id": "app.m_user.username",
+                                "field": "app.m_user.username",
+                                "type": "string",
+                                "operator": "equal",
+                                "value": "chatGpt",
+                                "data": {
+                                  "table": "m_user",
+                                  "column": "username",
+                                  "type": "text",
+                                  "columnObj": {
+                                    "type": "string",
+                                    "maxLength": 50,
+                                    "primary": false,
+                                    "unique": false,
+                                    "nullable": true,
+                                    "name": "username"
+                                  },
+                                  "schema": "app"
+                                },
+                                "operation": "=",
+                                "table": "m_user"
+                              }
+                            ],
+                            "conditional": null,
+                            "valid": true
+                          },
+                          "query": "select \"user_id\" from \"app\".\"m_user\" where \"app\".\"m_user\".\"username\" = ?"
+                        }
+                      },
+                      "output": false,
+                      "meta": [
+                        {
+                          "type": "text",
+                          "name": "user_id"
+                        }
+                      ],
+                      "outputType": "object",
+                      "type": "dbconnector_single"
+                    },
+                    {
+                      "name": "",
+                      "module": "core",
+                      "action": "condition",
+                      "options": {
+                        "if": "{{qIsChatInWaiting[0].not_waiting==1}}",
+                        "then": {
+                          "steps": [
+                            {
+                              "name": "msg_copy",
+                              "module": "sockets",
+                              "action": "message",
+                              "options": {
+                                "eventName": "chat_message",
+                                "params": {
+                                  "message": "You are now talking to Iconbot.",
+                                  "username": "Ai"
+                                },
+                                "socketId": "{{socket_identity}}"
+                              }
+                            },
+                            {
+                              "name": "insertGptMessage_copy",
+                              "module": "dbupdater",
+                              "action": "insert",
+                              "options": {
+                                "connection": "db",
+                                "sql": {
+                                  "type": "insert",
+                                  "values": [
+                                    {
+                                      "table": "app.t_message",
+                                      "column": "sender_id",
+                                      "type": "text",
+                                      "value": "{{queryChatGptUserId.user_id}}"
+                                    },
+                                    {
+                                      "table": "app.t_message",
+                                      "column": "content",
+                                      "type": "text",
+                                      "value": "You are now talking to IconBot"
+                                    },
+                                    {
+                                      "table": "app.t_message",
+                                      "column": "created_on",
+                                      "type": "datetime",
+                                      "value": "{{NOW_UTC}}"
+                                    },
+                                    {
+                                      "table": "app.t_message",
+                                      "column": "chat_room_id",
+                                      "type": "text",
+                                      "value": "{{chat_id}}"
+                                    }
+                                  ],
+                                  "table": "app.t_message",
+                                  "returning": "message_id",
+                                  "query": "insert into \"app\".\"t_message\" (\"chat_room_id\", \"content\", \"created_on\", \"sender_id\") values (?, ?, ?, ?) returning \"message_id\"",
+                                  "params": [
+                                    {
+                                      "name": ":P1",
+                                      "type": "expression",
+                                      "value": "{{queryChatGptUserId.user_id}}",
+                                      "test": ""
+                                    },
+                                    {
+                                      "name": ":P2",
+                                      "type": "expression",
+                                      "value": "{{NOW_UTC}}",
+                                      "test": ""
+                                    },
+                                    {
+                                      "name": ":P3",
+                                      "type": "expression",
+                                      "value": "{{chat_id}}",
+                                      "test": ""
+                                    }
+                                  ]
+                                }
+                              },
+                              "meta": [
+                                {
+                                  "name": "identity",
+                                  "type": "text"
+                                },
+                                {
+                                  "name": "affected",
+                                  "type": "number"
+                                }
+                              ]
+                            },
+                            {
+                              "name": "updateGptPresence",
+                              "module": "dbupdater",
+                              "action": "update",
+                              "options": {
+                                "connection": "db",
+                                "sql": {
+                                  "type": "update",
+                                  "values": [
+                                    {
+                                      "table": "app.p_chat_participant",
+                                      "column": "is_active_memeber",
+                                      "type": "boolean",
+                                      "value": "1"
+                                    },
+                                    {
+                                      "table": "app.p_chat_participant",
+                                      "column": "last_active_time",
+                                      "type": "datetime",
+                                      "value": "{{null}}"
+                                    }
+                                  ],
+                                  "table": "app.p_chat_participant",
+                                  "wheres": {
+                                    "condition": "AND",
+                                    "rules": [
+                                      {
+                                        "id": "user_id",
+                                        "field": "user_id",
+                                        "type": "string",
+                                        "operator": "equal",
+                                        "value": "{{queryChatGptUserId.user_id}}",
+                                        "data": {
+                                          "column": "user_id"
+                                        },
+                                        "operation": "="
+                                      }
+                                    ],
+                                    "conditional": null,
+                                    "valid": true
+                                  },
+                                  "returning": "participant_id",
+                                  "query": "update \"app\".\"p_chat_participant\" set \"is_active_memeber\" = ?, \"last_active_time\" = ? where \"user_id\" = ? returning \"participant_id\"",
+                                  "params": [
+                                    {
+                                      "name": ":P1",
+                                      "type": "expression",
+                                      "value": "{{null}}",
+                                      "test": ""
+                                    },
+                                    {
+                                      "operator": "equal",
+                                      "type": "expression",
+                                      "name": ":P2",
+                                      "value": "{{queryChatGptUserId.user_id}}",
+                                      "test": ""
+                                    }
+                                  ]
+                                }
+                              },
+                              "meta": [
+                                {
+                                  "name": "affected",
+                                  "type": "number"
+                                }
+                              ]
+                            },
+                            {
+                              "name": "queryLastMessagesElse",
+                              "module": "dbconnector",
+                              "action": "select",
+                              "options": {
+                                "connection": "db",
+                                "sql": {
+                                  "type": "select",
+                                  "columns": [
+                                    {
+                                      "table": "MU",
+                                      "column": "role_id"
+                                    },
+                                    {
+                                      "table": "TM",
+                                      "column": "content"
+                                    }
+                                  ],
+                                  "params": [
+                                    {
+                                      "operator": "equal",
+                                      "type": "expression",
+                                      "name": ":P1",
+                                      "value": "{{chat_id}}",
+                                      "test": ""
+                                    }
+                                  ],
+                                  "table": {
+                                    "name": "t_message",
+                                    "schema": "app",
+                                    "alias": "TM"
+                                  },
+                                  "primary": "message_id",
+                                  "joins": [
+                                    {
+                                      "table": "m_user",
+                                      "column": "*",
+                                      "alias": "MU",
+                                      "type": "LEFT",
+                                      "clauses": {
+                                        "condition": "AND",
+                                        "rules": [
+                                          {
+                                            "table": "MU",
+                                            "column": "user_id",
+                                            "operator": "equal",
+                                            "operation": "=",
+                                            "value": {
+                                              "table": "TM",
+                                              "column": "sender_id"
+                                            }
+                                          }
+                                        ]
+                                      },
+                                      "primary": "user_id",
+                                      "schema": "app"
+                                    }
+                                  ],
+                                  "wheres": {
+                                    "condition": "AND",
+                                    "rules": [
+                                      {
+                                        "id": "TM.chat_room_id",
+                                        "field": "TM.chat_room_id",
+                                        "type": "string",
+                                        "operator": "equal",
+                                        "value": "{{chat_id}}",
+                                        "data": {
+                                          "table": "TM",
+                                          "column": "chat_room_id",
+                                          "type": "text",
+                                          "columnObj": {
+                                            "type": "reference",
+                                            "primary": false,
+                                            "unique": false,
+                                            "nullable": true,
+                                            "references": "chat_room_id",
+                                            "inTable": "m_chat_room",
+                                            "referenceType": "uuid",
+                                            "onUpdate": "NO ACTION",
+                                            "onDelete": "CASCADE",
+                                            "name": "chat_room_id"
+                                          }
+                                        },
+                                        "operation": "="
+                                      }
+                                    ],
+                                    "conditional": null,
+                                    "valid": true
+                                  },
+                                  "query": "select \"MU\".\"role_id\", \"TM\".\"content\" from \"app\".\"t_message\" as \"TM\" left join \"app\".\"m_user\" as \"MU\" on \"MU\".\"user_id\" = \"TM\".\"sender_id\" where \"TM\".\"chat_room_id\" = ? order by \"TM\".\"created_on\" ASC",
+                                  "orders": [
+                                    {
+                                      "table": "TM",
+                                      "column": "created_on",
+                                      "direction": "ASC"
+                                    }
+                                  ]
+                                }
+                              },
+                              "output": false,
+                              "meta": [
+                                {
+                                  "type": "number",
+                                  "name": "role_id"
+                                },
+                                {
+                                  "type": "text",
+                                  "name": "content"
+                                }
+                              ],
+                              "outputType": "array"
+                            },
+                            {
+                              "name": "moduleGptResponseSecond",
+                              "module": "gptuser",
+                              "action": "final_response",
+                              "options": {
+                                "userQuery": "{{$_PARAM.message}}",
+                                "userMemory": "{{queryChatGptUserId}}"
+                              }
+                            },
+                            {
+                              "name": "iMessageGptUser",
+                              "module": "dbupdater",
+                              "action": "insert",
+                              "options": {
+                                "connection": "db",
+                                "sql": {
+                                  "type": "insert",
+                                  "values": [
+                                    {
+                                      "table": "app.t_message",
+                                      "column": "chat_room_id",
+                                      "type": "number",
+                                      "value": "{{chat_id}}"
+                                    },
+                                    {
+                                      "table": "app.t_message",
+                                      "column": "sender_id",
+                                      "type": "text",
+                                      "value": "{{queryChatGptUserId.user_id}}"
+                                    },
+                                    {
+                                      "table": "app.t_message",
+                                      "column": "content",
+                                      "type": "text",
+                                      "value": "{{moduleGptResponseSecond.gpt_solution}}"
+                                    },
+                                    {
+                                      "table": "app.t_message",
+                                      "column": "created_on",
+                                      "type": "datetime",
+                                      "value": "{{NOW_UTC}}"
+                                    }
+                                  ],
+                                  "table": "app.t_message",
+                                  "returning": "message_id",
+                                  "query": "insert into \"app\".\"t_message\" (\"chat_room_id\", \"content\", \"created_on\", \"sender_id\") values (?, ?, ?, ?) returning \"message_id\"",
+                                  "params": [
+                                    {
+                                      "name": ":P1",
+                                      "type": "expression",
+                                      "value": "{{chat_id}}",
+                                      "test": ""
+                                    },
+                                    {
+                                      "name": ":P2",
+                                      "type": "expression",
+                                      "value": "{{queryChatGptUserId.user_id}}",
+                                      "test": ""
+                                    },
+                                    {
+                                      "name": ":P3",
+                                      "type": "expression",
+                                      "value": "{{moduleGptResponseSecond.gpt_solution}}",
+                                      "test": ""
+                                    },
+                                    {
+                                      "name": ":P4",
+                                      "type": "expression",
+                                      "value": "{{NOW_UTC}}",
+                                      "test": ""
+                                    }
+                                  ]
+                                }
+                              },
+                              "meta": [
+                                {
+                                  "name": "identity",
+                                  "type": "text"
+                                },
+                                {
+                                  "name": "affected",
+                                  "type": "number"
+                                }
+                              ]
+                            },
+                            {
+                              "name": "msg_copy_copy_copy",
+                              "module": "sockets",
+                              "action": "message",
+                              "options": {
+                                "eventName": "chat_message",
+                                "params": {
+                                  "message": "{{moduleGptResponseSecond.gpt_solution}}",
+                                  "username": "Ai"
+                                },
+                                "socketId": "{{socket_identity}}"
+                              }
+                            }
+                          ]
+                        },
+                        "else": {
+                          "steps": [
+                            {
+                              "name": "endMessage",
+                              "module": "core",
+                              "action": "setvalue",
+                              "options": {
+                                "key": "endMessage",
+                                "value": "Please wait we are trying to find you a support staff!"
+                              },
+                              "meta": [],
+                              "outputType": "text"
+                            },
+                            {
+                              "name": "msg_copy_copy",
+                              "module": "sockets",
+                              "action": "message",
+                              "options": {
+                                "eventName": "chat_message",
+                                "params": {
+                                  "message": "{{endMessage}}",
+                                  "username": "Ai"
+                                },
+                                "socketId": "{{socket_identity}}"
+                              }
+                            },
+                            {
+                              "name": "emit1",
+                              "module": "sockets",
+                              "action": "emit",
+                              "options": {
+                                "room": "{{room_support}}",
+                                "eventName": "chat_message",
+                                "params": {
+                                  "message": "{{$_PARAM.message}}",
+                                  "type-ad": "waiting-message",
+                                  "chat_room_id": "{{chat_id}}"
+                                }
+                              }
+                            },
+                            {
+                              "name": "insertGptMessage",
+                              "module": "dbupdater",
+                              "action": "insert",
+                              "options": {
+                                "connection": "db",
+                                "sql": {
+                                  "type": "insert",
+                                  "values": [
+                                    {
+                                      "table": "app.t_message",
+                                      "column": "sender_id",
+                                      "type": "text",
+                                      "value": "{{queryChatGptUserId.user_id}}"
+                                    },
+                                    {
+                                      "table": "app.t_message",
+                                      "column": "content",
+                                      "type": "text",
+                                      "value": "{{endMessage}}"
+                                    },
+                                    {
+                                      "table": "app.t_message",
+                                      "column": "created_on",
+                                      "type": "datetime",
+                                      "value": "{{NOW_UTC}}"
+                                    },
+                                    {
+                                      "table": "app.t_message",
+                                      "column": "chat_room_id",
+                                      "type": "text",
+                                      "value": "{{chat_id}}"
+                                    }
+                                  ],
+                                  "table": "app.t_message",
+                                  "returning": "message_id",
+                                  "query": "insert into \"app\".\"t_message\" (\"chat_room_id\", \"content\", \"created_on\", \"sender_id\") values (?, ?, ?, ?) returning \"message_id\"",
+                                  "params": [
+                                    {
+                                      "name": ":P1",
+                                      "type": "expression",
+                                      "value": "{{queryChatGptUserId.user_id}}",
+                                      "test": ""
+                                    },
+                                    {
+                                      "name": ":P2",
+                                      "type": "expression",
+                                      "value": "{{endMessage}}",
+                                      "test": ""
+                                    },
+                                    {
+                                      "name": ":P3",
+                                      "type": "expression",
+                                      "value": "{{NOW_UTC}}",
+                                      "test": ""
+                                    },
+                                    {
+                                      "name": ":P4",
+                                      "type": "expression",
+                                      "value": "{{chat_id}}",
+                                      "test": ""
+                                    }
+                                  ]
+                                }
+                              },
+                              "meta": [
+                                {
+                                  "name": "identity",
+                                  "type": "text"
+                                },
+                                {
+                                  "name": "affected",
+                                  "type": "number"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      },
+                      "outputType": "boolean"
+                    }
+                  ]
+                }
+              },
+              "outputType": "boolean"
+            }
+          }
+        },
+        "outputType": "boolean"
+      }
+    ]
+  }
+}

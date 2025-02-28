@@ -1,0 +1,163 @@
+{
+  "meta": {
+    "options": {
+      "linkedFile": "/views/login-page.ejs",
+      "linkedForm": "formLogin"
+    },
+    "$_GET": [
+      {
+        "type": "text",
+        "name": "sort"
+      },
+      {
+        "type": "text",
+        "name": "dir"
+      }
+    ],
+    "$_POST": [
+      {
+        "type": "text",
+        "fieldName": "email",
+        "options": {
+          "rules": {}
+        },
+        "name": "email_id"
+      },
+      {
+        "type": "text",
+        "fieldName": "pass",
+        "options": {
+          "rules": {
+            "core:maxlength": {
+              "param": 36
+            }
+          }
+        },
+        "name": "pass"
+      }
+    ]
+  },
+  "exec": {
+    "steps": [
+      {
+        "name": "identity",
+        "module": "auth",
+        "action": "login",
+        "options": {
+          "provider": "login",
+          "remember": 1,
+          "password": "{{$_POST.pass}}",
+          "username": "{{$_POST.email_id}}"
+        },
+        "output": false,
+        "meta": []
+      },
+      {
+        "name": "qRoleID",
+        "module": "dbconnector",
+        "action": "select",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "type": "select",
+            "columns": [
+              {
+                "table": "app.m_role",
+                "column": "default_page",
+                "recid": 1
+              }
+            ],
+            "params": [
+              {
+                "operator": "equal",
+                "type": "expression",
+                "name": ":P1",
+                "value": "{{$_POST.email_id}}",
+                "test": ""
+              }
+            ],
+            "table": {
+              "name": "m_user",
+              "schema": "app"
+            },
+            "primary": "user_id",
+            "joins": [
+              {
+                "table": "app.m_role",
+                "column": "*",
+                "type": "LEFT",
+                "clauses": {
+                  "condition": "AND",
+                  "rules": [
+                    {
+                      "table": "app.m_role",
+                      "column": "id",
+                      "operator": "equal",
+                      "operation": "=",
+                      "value": {
+                        "table": "m_user",
+                        "column": "role_id"
+                      }
+                    }
+                  ]
+                },
+                "primary": "id"
+              }
+            ],
+            "wheres": {
+              "condition": "AND",
+              "rules": [
+                {
+                  "id": "app.m_user.email_id",
+                  "field": "app.m_user.email_id",
+                  "type": "string",
+                  "operator": "equal",
+                  "value": "{{$_POST.email_id}}",
+                  "data": {
+                    "table": "m_user",
+                    "column": "email_id",
+                    "type": "text",
+                    "columnObj": {
+                      "type": "string",
+                      "maxLength": 254,
+                      "primary": false,
+                      "unique": false,
+                      "nullable": true,
+                      "name": "email_id"
+                    },
+                    "schema": "app"
+                  },
+                  "operation": "="
+                }
+              ],
+              "conditional": null,
+              "valid": true
+            },
+            "query": "select \"app\".\"m_role\".\"default_page\" from \"app\".\"m_user\" left join \"app\".\"m_role\" on \"app\".\"m_role\".\"id\" = \"m_user\".\"role_id\" where \"app\".\"m_user\".\"email_id\" = ?",
+            "orders": []
+          }
+        },
+        "output": true,
+        "meta": [
+          {
+            "type": "text",
+            "name": "default_page"
+          }
+        ],
+        "outputType": "array"
+      },
+      {
+        "name": "default_page",
+        "module": "core",
+        "action": "setvalue",
+        "options": {
+          "key": "default_page",
+          "value": "{{qRoleID[0].default_page}}"
+        },
+        "meta": [],
+        "outputType": "text",
+        "output": true
+      }
+    ]
+  }
+}

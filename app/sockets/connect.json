@@ -1,0 +1,310 @@
+{
+  "meta": {
+    "$_PARAM": [
+      {
+        "type": "text",
+        "name": "user_id"
+      }
+    ]
+  },
+  "exec": {
+    "steps": {
+      "name": "",
+      "module": "core",
+      "action": "condition",
+      "options": {
+        "if": "{{identity}}",
+        "then": {
+          "steps": [
+            {
+              "name": "socket_identity",
+              "module": "sockets",
+              "action": "identify",
+              "options": {},
+              "output": false
+            },
+            {
+              "name": "qRole",
+              "module": "dbconnector",
+              "action": "select",
+              "options": {
+                "connection": "db",
+                "sql": {
+                  "type": "select",
+                  "columns": [],
+                  "params": [
+                    {
+                      "operator": "equal",
+                      "type": "expression",
+                      "name": ":P1",
+                      "value": "{{identity}}",
+                      "test": ""
+                    }
+                  ],
+                  "table": {
+                    "name": "app.m_user"
+                  },
+                  "primary": "user_id",
+                  "joins": [],
+                  "sub": {
+                    "app.m_role": {
+                      "table": {
+                        "name": "app.m_role",
+                        "alias": "app.m_role"
+                      },
+                      "key": "created_by"
+                    }
+                  },
+                  "wheres": {
+                    "condition": "AND",
+                    "rules": [
+                      {
+                        "id": "app.m_user.user_id",
+                        "field": "app.m_user.user_id",
+                        "type": "string",
+                        "operator": "equal",
+                        "value": "{{identity}}",
+                        "data": {
+                          "table": "app.m_user",
+                          "column": "user_id",
+                          "type": "text",
+                          "columnObj": {
+                            "type": "uuid",
+                            "default": "gen_random_uuid()",
+                            "primary": true,
+                            "unique": true,
+                            "nullable": false,
+                            "name": "user_id"
+                          }
+                        },
+                        "operation": "="
+                      }
+                    ],
+                    "conditional": null,
+                    "valid": true
+                  },
+                  "query": "select * from \"app\".\"m_user\" where \"app\".\"m_user\".\"user_id\" = ?"
+                }
+              },
+              "output": false,
+              "meta": [
+                {
+                  "type": "text",
+                  "name": "user_id"
+                },
+                {
+                  "type": "text",
+                  "name": "username"
+                },
+                {
+                  "type": "text",
+                  "name": "password"
+                },
+                {
+                  "type": "text",
+                  "name": "first_name"
+                },
+                {
+                  "type": "text",
+                  "name": "last_name"
+                },
+                {
+                  "type": "text",
+                  "name": "email_id"
+                },
+                {
+                  "type": "text",
+                  "name": "phone"
+                },
+                {
+                  "type": "number",
+                  "name": "role_id"
+                },
+                {
+                  "type": "text",
+                  "name": "avatar"
+                },
+                {
+                  "type": "boolean",
+                  "name": "is_active"
+                },
+                {
+                  "type": "text",
+                  "name": "last_login_ip"
+                },
+                {
+                  "type": "datetime",
+                  "name": "last_login_time"
+                },
+                {
+                  "type": "text",
+                  "name": "login_disabled_by"
+                },
+                {
+                  "type": "datetime",
+                  "name": "login_disabled_on"
+                },
+                {
+                  "type": "text",
+                  "name": "updated_by"
+                },
+                {
+                  "type": "datetime",
+                  "name": "updated_on"
+                },
+                {
+                  "type": "text",
+                  "name": "deleted_by"
+                },
+                {
+                  "type": "datetime",
+                  "name": "deleted_on"
+                },
+                {
+                  "type": "text",
+                  "name": "created_by"
+                },
+                {
+                  "type": "datetime",
+                  "name": "created_on"
+                },
+                {
+                  "type": "text",
+                  "name": "socket_id"
+                },
+                {
+                  "name": "app.m_role",
+                  "type": "array",
+                  "sub": [
+                    {
+                      "type": "number",
+                      "name": "id"
+                    },
+                    {
+                      "type": "text",
+                      "name": "role_name"
+                    },
+                    {
+                      "type": "text",
+                      "name": "role_info"
+                    },
+                    {
+                      "type": "text",
+                      "name": "default_page"
+                    },
+                    {
+                      "type": "number",
+                      "name": "updated_by"
+                    },
+                    {
+                      "type": "datetime",
+                      "name": "updated_on"
+                    },
+                    {
+                      "type": "number",
+                      "name": "deleted_by"
+                    },
+                    {
+                      "type": "datetime",
+                      "name": "deleted_on"
+                    },
+                    {
+                      "type": "number",
+                      "name": "created_by"
+                    },
+                    {
+                      "type": "datetime",
+                      "name": "created_on"
+                    }
+                  ]
+                }
+              ],
+              "outputType": "array"
+            },
+            {
+              "name": "",
+              "module": "core",
+              "action": "condition",
+              "options": {
+                "if": "{{qRole[0].role_id==1}}",
+                "then": {
+                  "steps": {
+                    "name": "join",
+                    "module": "sockets",
+                    "action": "join",
+                    "options": {
+                      "room": "{{room_support}}"
+                    }
+                  }
+                }
+              },
+              "outputType": "boolean"
+            },
+            {
+              "name": "update",
+              "module": "dbupdater",
+              "action": "update",
+              "options": {
+                "connection": "db",
+                "sql": {
+                  "type": "update",
+                  "values": [
+                    {
+                      "table": "app.m_user",
+                      "column": "socket_id",
+                      "type": "text",
+                      "value": "{{socket_identity}}"
+                    }
+                  ],
+                  "table": "app.m_user",
+                  "wheres": {
+                    "condition": "AND",
+                    "rules": [
+                      {
+                        "id": "user_id",
+                        "field": "user_id",
+                        "type": "string",
+                        "operator": "equal",
+                        "value": "{{identity}}",
+                        "data": {
+                          "column": "user_id"
+                        },
+                        "operation": "="
+                      }
+                    ],
+                    "conditional": null,
+                    "valid": true
+                  },
+                  "returning": "user_id",
+                  "query": "update \"app\".\"m_user\" set \"socket_id\" = ? where \"user_id\" = ? returning \"user_id\"",
+                  "params": [
+                    {
+                      "name": ":P1",
+                      "type": "expression",
+                      "value": "{{socket_identity}}",
+                      "test": ""
+                    },
+                    {
+                      "operator": "equal",
+                      "type": "expression",
+                      "name": ":P2",
+                      "value": "{{identity}}",
+                      "test": ""
+                    }
+                  ]
+                }
+              },
+              "meta": [
+                {
+                  "name": "affected",
+                  "type": "number"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "outputType": "boolean"
+    }
+  }
+}

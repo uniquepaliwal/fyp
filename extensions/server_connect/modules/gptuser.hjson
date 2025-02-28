@@ -1,0 +1,53 @@
+{
+    type:'gpt_response',
+    module:'gptuser',
+    action:'final_response',
+    groupTitle:'get gpt response',
+    groupIcon:'fas fa-cogs',
+    title:'response from user query by gpt',
+    icon:'fas fa-cogs',
+    dataPickObject:true,
+    properties:[
+            {
+                group:'Module Inputs',
+        variables:[
+            {
+                name:'actionName',
+                optionName:'name',
+                title:'Name',
+                type:'text',
+                required:true ,
+                defaultValue:'',
+                baseName:'module1',
+            },
+            {
+                name:'userQuery',
+                optionName:'userQuery',
+                title:'User Query',
+                type:'text',
+                required:true,
+                defaultValue:'',
+                serverDataBindings:true,
+                help:'Enter the user query here'
+            },
+            {
+                name:'userMemory',
+                optionName:'userMemory',
+                title:'send memory',
+                type:'text',
+                required:true,
+                defaultValue:'',
+                serverDataBindings:true,
+                help:'Enter the user number here'
+            },
+            {
+                name:'output',
+                optionName:'output',
+                title:'Output',
+                type:'boolean',
+                defaultValue: false
+            }
+        ]
+            } 
+    ]
+}

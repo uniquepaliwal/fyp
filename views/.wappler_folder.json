@@ -1,0 +1,54 @@
+{
+  "chatbot.ejs": {
+    "layoutPage": "main",
+    "description": ""
+  },
+  "test.ejs": {
+    "layoutPage": "access",
+    "description": ""
+  },
+  "comming-soon.ejs": {
+    "layoutPage": "main",
+    "description": ""
+  },
+  "chat-test.ejs": {
+    "layoutPage": "main",
+    "description": ""
+  },
+  "login.ejs": {
+    "layoutPage": "access",
+    "description": ""
+  },
+  "register.ejs": {
+    "layoutPage": "access",
+    "description": ""
+  },
+  "forgot-password.ejs": {
+    "layoutPage": "access",
+    "description": ""
+  },
+  "user_page.ejs": {
+    "layoutPage": "main",
+    "description": ""
+  },
+  "chat-user.ejs": {
+    "layoutPage": "main",
+    "description": ""
+  },
+  "settings.ejs": {
+    "layoutPage": "main",
+    "description": ""
+  },
+  "bot.ejs": {
+    "layoutPage": "main",
+    "description": ""
+  },
+  "transcripts.ejs": {
+    "layoutPage": "main",
+    "description": ""
+  },
+  "waiting-room.ejs": {
+    "layoutPage": "main",
+    "description": ""
+  }
+}

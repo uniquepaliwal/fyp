@@ -1,0 +1,28 @@
+{
+  "name": "",
+  "module": "core",
+  "action": "condition",
+  "options": {
+    "if": "{{identity}}",
+    "then": {
+      "steps": {
+        "name": "",
+        "options": {
+          "comment": "loggedIn"
+        }
+      }
+    },
+    "else": {
+      "steps": {
+        "name": "noAccess",
+        "module": "core",
+        "action": "response",
+        "options": {
+          "status": 401,
+          "data": "no access"
+        }
+      }
+    }
+  },
+  "outputType": "boolean"
+}

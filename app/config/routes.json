@@ -1,8 +1,13 @@
 {
   "routes": [
     {
-      "path": "/chatbot",
+      "path": "/chat",
       "page": "chatbot",
+      "layout": "main"
+    },
+    {
+      "path": "/Upload",
+      "page": "Upload",
       "layout": "main"
     },
     {
@@ -21,18 +26,8 @@
       "layout": "access"
     },
     {
-      "path": "/bot",
-      "page": "bot",
-      "layout": "main"
-    },
-    {
-      "path": "/transcripts",
-      "page": "transcripts",
-      "layout": "main"
-    },
-    {
-      "path": "/waiting-room",
-      "page": "waiting-room",
+      "path": "/landing",
+      "page": "landing",
       "layout": "main"
     },
     {

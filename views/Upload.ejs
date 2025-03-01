@@ -1,0 +1,239 @@
+<!-- Wappler include head-page="layouts/main" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="Upload" appConnect="local" components="{dmxBootstrap5Navigation:{},dmxBootstrap5Modal:{},dmxDatePicker:{},dmxFormatter:{},dmxDataTraversal:{}}" jquery_slim_35="cdn" moment_2="cdn" -->
+<dmx-data-detail id="ddDelete" dmx-bind:data="scFileList.data.query" key="pdf_id"></dmx-data-detail>
+<dmx-serverconnect id="scFileList" url="/api/chats/file-uploded"></dmx-serverconnect>
+<dmx-serverconnect id="scDeleteFile" url="/api/chats/file-delete" dmx-on:success="notifies_main.success('File deleted!');scFileList.load({})" noload="true" dmx-on:error="notifies_main.warning('Error deleting file, please try again later!')"></dmx-serverconnect>
+
+<meta name="ac:route" content="/Upload">
+<style>
+    .main {
+        background-color: #f8fafc;
+        min-height: 100vh;
+    }
+
+    .header-title {
+        font-weight: 700;
+        color: #4F46E5;
+        position: relative;
+        padding-bottom: 8px;
+    }
+
+    .header-title:after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 60px;
+        height: 3px;
+        background-color: #4F46E5;
+    }
+
+    .card {
+        border-radius: 12px;
+        border: none;
+        box-shadow: 0 4px 12px rgba(0.1, 0.1, 0.1, 0.15);
+        transition: all 0.3s ease;
+
+        /* overflow: hidden; */
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 14px 24px rgba(79, 70, 229, 0.1);
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .project-block {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 15px;
+        background-color: rgba(79, 70, 229, 0.1);
+        color: #4F46E5;
+    }
+
+    .project-block i {
+        font-size: 24px;
+        display: block;
+        line-height: 1;
+    }
+
+    .project-block .icofont-tick-boxed {
+        font-size: 26px;
+    }
+
+    .bg-whole {
+        background-color: rgba(79, 70, 229, 0.1);
+    }
+
+    .project_name {
+        color: #6B7280;
+        font-size: 14px;
+        display: block;
+        margin-bottom: 5px;
+    }
+
+
+
+
+    .file-name {
+        color: #1F2937;
+        font-weight: 500;
+        font-size: 15px;
+    }
+
+    .modal-content {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+
+    .modal-header {
+        border-bottom: 1px solid #E5E7EB;
+        padding: 1.25rem 1.5rem;
+    }
+
+    .modal-title {
+        color: #1F2937;
+        font-weight: 600;
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+    }
+
+    .modal-footer {
+        border-top: 1px solid #E5E7EB;
+        padding: 1.25rem 1.5rem;
+    }
+
+    .form-control-solid {
+        background-color: #F9FAFB;
+        border: 1px solid #E5E7EB;
+        border-radius: 6px;
+        padding: 12px 16px;
+        transition: all 0.2s ease;
+    }
+
+    .form-control-solid:focus {
+        border-color: #4F46E5;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+    }
+
+    .delete-icon {
+        font-size: 50px;
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+        0% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.05);
+        }
+
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    .file-card-container {
+        transition: all 0.3s ease;
+    }
+
+    .file-card-container:hover {
+        transform: translateY(-5px);
+    }
+</style>
+
+<div class="main px-lg-4 px-md-4 " style="background-color:white;">
+    <div class="body d-flex py-lg-3 py-md-2">
+        <div class="container-xxl">
+            <div class="row align-items-center">
+                <div class="border-0 mb-4">
+                    <div class="card-header p-0 no-bg bg-transparent align-items-center px-0 d-flex border-bottom flex-wrap">
+                        <h3 class="h4 py-3 mb-0 text-primary">Uploaded Files -</h3>
+                        <div class="d-flex py-2 project-tab flex-wrap w-sm-100 ms-auto">
+                            <button type="button" class="btn w-sm-100 mb-2 mb-md-0 btn-light text-white bg-primary" data-bs-toggle="modal" data-bs-target="#createproject" dmx-on:click="modalUpload.show()"><i class="icofont-plus-circle me-2 fs-6"></i>Add File</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row align-items-center">
+                <div class="col-lg-12 col-md-12 flex-column">
+
+                    <div class="row g-3 gy-5 py-3 row-deck">
+                        <div dmx-repeat:rfileuploaded="content.scFileList.data.query" class="col-xxl-4 col-xl-4 col-lg-4 col-md-6 col-sm-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center justify-content-between mt-5">
+                                        <div class="lesson_name">
+                                            <div class="project-block bg-whole">
+                                                <i class="icofont-tick-boxed"></i>
+                                            </div>
+                                            <span class="small text-muted project_name fw-bold"> File Uploaded </span>
+                                            <div class="mb-0  file-name  fs-6  mb-2"><span class="text-primary">File Name -</span> {{filename}}</div>
+                                            <div class="mb-0  file-name  fs-6  mb-2"><span class="text-primary">Created By -</span> {{username}}</div>
+                                            <div class="mb-0  file-name  fs-6  mb-2"><span class="text-primary">Created On -</span> {{created_on.toUTCDate().formatDate('dd-MM-yyyy')}}</div>
+                                        </div>
+                                        <div class="btn-group" role="group" aria-label="Basic outlined example">
+                                            <button type="button" class="btn btn-outline-secondary" dmx-on:click="ddDelete.select(pdf_id);modalDelete.show()"><i class="icofont-ui-delete text-danger"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal" id="modalDelete" is="dmx-bs5-modal" tabindex="-1">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title  fw-bold" id="deleteprojectLabel"> Delete item Permanently?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body justify-content-center flex-column d-flex">
+                <i class="icofont-ui-delete text-danger display-2 text-center mt-2 delete-icon"></i>
+                <p class="mt-4 fs-5 text-center">You can only delete this item Permanently</p>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm  btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-sm btn-danger color-fff" dmx-on:click="scDeleteFile.load({pdf_id: ddDelete.data.pdf_id});modalDelete.hide()">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal" id="modalUpload" is="dmx-bs5-modal" tabindex="-1">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title  fw-bold"> Add a new File - </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="/api/chats/file-upload" is="dmx-serverconnect-form" method="post" id="scFileUpload" dmx-on:success="notifies_main.info('File Uploaded');scFileUpload.reset();scFileList.load({});modalUpload.hide()" dmx-on:error="notifies_main.danger('Something went wrong, please try again! ');scFileUpload.reset();modalDelete.hide()">
+                <div class="modal-body justify-content-center flex-column d-flex">
+                    <input type="file" class="form-control form-control-solid" name="fileUp" is="dmx-dropzone" id="fileUp" accept=".pdf">
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary color-fff">Upload</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

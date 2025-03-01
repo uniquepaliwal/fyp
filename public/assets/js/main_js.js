@@ -11,14 +11,14 @@ function createChatLi(message, date, time, type, chatInitial = "") {
                                     ${chatInitial}
                                 </span><span class="text-muted small">
                                     ${date} , ${time}
-                                </span></div><div class="card border-0 p-3"><div class="message">
+                                </span></div><div class="card border-0 p-3" style="border-radius:13px 0px 13px 13px;"><div class="message">
                                     ${message}
                                 </div></div></div>`
     } else {
         chatLi.classList.add("flex-row-reverse")
         chatContent = `<div class="max-width-70 text-right"><div class="user-info mb-1"><span class="text-muted small">
                                 ${date} , ${time}
-                                </span></div><div class="card border-0 p-3 bg-primary text-light"><div class="message">
+                                </span></div><div class="card border-0 p-3 bg-primary text-light" style="border-radius:13px 13px 0px 13px;"><div class="message">
                                 ${message}
                                 </div></div></div>`
     }

@@ -31,16 +31,6 @@
                 help:'Enter the user query here'
             },
             {
-                name:'userMemory',
-                optionName:'userMemory',
-                title:'send memory',
-                type:'text',
-                required:true,
-                defaultValue:'',
-                serverDataBindings:true,
-                help:'Enter the user number here'
-            },
-            {
                 name:'output',
                 optionName:'output',
                 title:'Output',

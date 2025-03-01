@@ -1,0 +1,159 @@
+{
+  "meta": {
+    "$_GET": [
+      {
+        "type": "text",
+        "name": "pdf_id"
+      },
+      {
+        "type": "text",
+        "name": "sort"
+      },
+      {
+        "type": "text",
+        "name": "dir"
+      }
+    ]
+  },
+  "exec": {
+    "steps": [
+      {
+        "name": "query",
+        "module": "dbconnector",
+        "action": "select",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "type": "select",
+            "columns": [
+              {
+                "table": "app.m_pdf",
+                "column": "file_path"
+              }
+            ],
+            "params": [
+              {
+                "operator": "equal",
+                "type": "expression",
+                "name": ":P1",
+                "value": "{{$_GET.pdf_id}}",
+                "test": ""
+              }
+            ],
+            "table": {
+              "name": "app.m_pdf"
+            },
+            "primary": "pdf_id",
+            "joins": [],
+            "wheres": {
+              "condition": "AND",
+              "rules": [
+                {
+                  "id": "app.m_pdf.pdf_id",
+                  "field": "app.m_pdf.pdf_id",
+                  "type": "string",
+                  "operator": "equal",
+                  "value": "{{$_GET.pdf_id}}",
+                  "data": {
+                    "table": "app.m_pdf",
+                    "column": "pdf_id",
+                    "type": "text",
+                    "columnObj": {
+                      "type": "uuid",
+                      "default": "gen_random_uuid()",
+                      "primary": true,
+                      "unique": true,
+                      "nullable": false,
+                      "name": "pdf_id"
+                    }
+                  },
+                  "operation": "="
+                }
+              ],
+              "conditional": null,
+              "valid": true
+            },
+            "query": "select \"file_path\" from \"app\".\"m_pdf\" where \"app\".\"m_pdf\".\"pdf_id\" = ?"
+          }
+        },
+        "output": true,
+        "meta": [
+          {
+            "type": "text",
+            "name": "file_path"
+          }
+        ],
+        "outputType": "array"
+      },
+      {
+        "name": "",
+        "module": "core",
+        "action": "condition",
+        "options": {
+          "if": "{{query[0].file_path!=null}}",
+          "then": {
+            "steps": [
+              {
+                "name": "fileRemove",
+                "module": "fs",
+                "action": "remove",
+                "options": {
+                  "path": "{{query[0].file_path}}"
+                },
+                "outputType": "boolean"
+              },
+              {
+                "name": "delete",
+                "module": "dbupdater",
+                "action": "delete",
+                "options": {
+                  "connection": "db",
+                  "sql": {
+                    "type": "delete",
+                    "table": "app.m_pdf",
+                    "wheres": {
+                      "condition": "AND",
+                      "rules": [
+                        {
+                          "id": "pdf_id",
+                          "field": "pdf_id",
+                          "type": "string",
+                          "operator": "equal",
+                          "value": "{{$_GET.pdf_id}}",
+                          "data": {
+                            "column": "pdf_id"
+                          },
+                          "operation": "="
+                        }
+                      ],
+                      "conditional": null,
+                      "valid": true
+                    },
+                    "returning": "pdf_id",
+                    "query": "delete from \"app\".\"m_pdf\" where \"pdf_id\" = ?",
+                    "params": [
+                      {
+                        "operator": "equal",
+                        "type": "expression",
+                        "name": ":P1",
+                        "value": "{{$_GET.pdf_id}}",
+                        "test": ""
+                      }
+                    ]
+                  }
+                },
+                "meta": [
+                  {
+                    "name": "affected",
+                    "type": "number"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        "outputType": "boolean"
+      }
+    ]
+  }
+}

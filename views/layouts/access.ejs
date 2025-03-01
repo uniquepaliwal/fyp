@@ -5,7 +5,7 @@
   <base href="/">
   <script src="/dmxAppConnect/dmxAppConnect.js"></script>
   <meta charset="UTF-8">
-  <title>Untitled Document</title>
+  <title>fyp</title>
 
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css" integrity="sha384-DyZ88mC6Up2uqS4h/KRgHuoeGwBcD4Ng9SiP4dIRy0EXTlnuz47vAwmeGwVChigm" crossorigin="anonymous" />
   <link rel="stylesheet" href="/bootstrap/5/css/bootstrap.min.css" />
@@ -26,7 +26,46 @@
   <script src="/dmxAppConnect/dmxNotifications/dmxNotifications.js" defer></script>
 </head>
 
-<body is="dmx-app" id="access">
+<style>
+  body {
+    background: linear-gradient(to bottom, #98D8EF, #E8F9FF);
+    overflow: hidden;
+  }
+
+  @keyframes waves {
+    0% {
+      transform: translateX(0);
+    }
+
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  .waves {
+    position: absolute;
+    width: 200%;
+    height: 100px;
+    bottom: 0;
+    left: 0;
+    background: url('https://i.imgur.com/5MZH8bd.png') repeat-x;
+    animation: waves 8s linear infinite;
+  }
+
+
+  .auth-h100 {
+    background-color: white;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+
+  .bg-image {
+    background: #1c77bd;
+  }
+</style>
+
+<body is="dmx-app" id="access" style="bac">
   <dmx-notifications id="notifies_access"></dmx-notifications>
   <div is="dmx-browser" id="browser_access"></div>
 
@@ -37,7 +76,7 @@
         <div class="row align-items-center justify-content-center">
           <div class="col">
             <div class="d-flex align-item-center justify-content-center">
-              <h5 class="mb-0 mt-1 mx-2">Icon Accounting</h5>
+              <h2 class="mb-0 mt-1 mx-2 text-primary">FINAL YEAR PROJECT</h2>
             </div>
           </div>
         </div>
@@ -46,8 +85,8 @@
       <!-- Body: Body -->
       <div class="body d-flex p-0 p-md-2 p-xl-5">
         <div class="container-xxl">
-          <div class="row g-0 border border-secondary rounded-3 mt-2 mt-md-0">
-            <div class="col-lg-6 d-flex justify-content-center align-items-center auth-h100 bg-secondary py-2 py-md-0">
+          <div class="row g-0 border border-primary rounded-3 mt-2 mt-md-0">
+            <div class="col-lg-6 d-flex justify-content-center align-items-center auth-h100 bg-image py-2 py-md-0 " style="border-radius:8px 0px 0px 8px;">
 
               <div is="dmx-view" id="content">
                 <%- await include(content, locals); %>
@@ -55,14 +94,14 @@
 
             </div>
 
-            <div class="col-lg-6 d-none d-lg-flex justify-content-center align-items-center auth-h100">
+            <div class="col-lg-6 d-none d-lg-flex justify-content-center align-items-center auth-h100" style="border-radius:0px 8px 8px 0px;">
               <div class="qr-block text-center">
-                <img src="assets/notfound/icon-logo.png" alt="#" class="img-fluid my-4" width="300">
-                <h4>You do your job. We'll do the rest</h4>
-                <p><span class="text-primary">Accountancy services for contractors</span></p>
+                <img src="assets/images/image-side.png" alt="#" class="img-fluid my-4" width="400" style="border-radius:50px;">
+                <h4 class="text-primary">FileGPT!</h4>
+                <p><span class="text-primary">Access your files instantly with ease!</span></p>
               </div>
             </div>
-          </div> <!-- End Row -->
+          </div>
 
         </div>
       </div>

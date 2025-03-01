@@ -1,0 +1,163 @@
+{
+  "meta": {
+    "options": {
+      "linkedFile": "/views/Upload.ejs",
+      "linkedForm": "scFileUpload"
+    },
+    "$_POST": [
+      {
+        "type": "file",
+        "fieldName": "fileUp",
+        "options": {
+          "rules": {
+            "upload:accept": {
+              "param": ".pdf"
+            }
+          }
+        },
+        "name": "fileUp",
+        "sub": [
+          {
+            "type": "text",
+            "name": "name"
+          },
+          {
+            "type": "text",
+            "name": "type"
+          },
+          {
+            "type": "number",
+            "name": "size"
+          },
+          {
+            "type": "text",
+            "name": "error"
+          }
+        ],
+        "outputType": "file"
+      }
+    ]
+  },
+  "exec": {
+    "steps": [
+      {
+        "name": "upload",
+        "module": "upload",
+        "action": "upload",
+        "options": {
+          "fields": "{{$_POST.fileUp}}",
+          "path": "/public/pdfs",
+          "replaceSpace": true,
+          "replaceDiacritics": true,
+          "asciiOnly": true,
+          "overwrite": true,
+          "throwErrors": true
+        },
+        "meta": [
+          {
+            "name": "name",
+            "type": "text"
+          },
+          {
+            "name": "path",
+            "type": "text"
+          },
+          {
+            "name": "url",
+            "type": "text"
+          },
+          {
+            "name": "type",
+            "type": "text"
+          },
+          {
+            "name": "size",
+            "type": "text"
+          },
+          {
+            "name": "error",
+            "type": "number"
+          }
+        ],
+        "outputType": "file",
+        "output": false
+      },
+      {
+        "name": "insertIntoDb",
+        "module": "dbupdater",
+        "action": "insert",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "type": "insert",
+            "values": [
+              {
+                "table": "app.m_pdf",
+                "column": "filename",
+                "type": "text",
+                "value": "{{upload.name}}"
+              },
+              {
+                "table": "app.m_pdf",
+                "column": "file_path",
+                "type": "text",
+                "value": "{{upload.path}}"
+              },
+              {
+                "table": "app.m_pdf",
+                "column": "created_by",
+                "type": "text",
+                "value": "{{identity}}"
+              },
+              {
+                "table": "app.m_pdf",
+                "column": "created_on",
+                "type": "datetime",
+                "value": "{{NOW_UTC}}"
+              }
+            ],
+            "table": "app.m_pdf",
+            "returning": "pdf_id",
+            "query": "insert into \"app\".\"m_pdf\" (\"created_by\", \"created_on\", \"file_path\", \"filename\") values (?, ?, ?, ?) returning \"pdf_id\"",
+            "params": [
+              {
+                "name": ":P1",
+                "type": "expression",
+                "value": "{{upload.name}}",
+                "test": ""
+              },
+              {
+                "name": ":P2",
+                "type": "expression",
+                "value": "{{upload.path}}",
+                "test": ""
+              },
+              {
+                "name": ":P3",
+                "type": "expression",
+                "value": "{{identity}}",
+                "test": ""
+              },
+              {
+                "name": ":P4",
+                "type": "expression",
+                "value": "{{NOW_UTC}}",
+                "test": ""
+              }
+            ]
+          }
+        },
+        "meta": [
+          {
+            "name": "identity",
+            "type": "text"
+          },
+          {
+            "name": "affected",
+            "type": "number"
+          }
+        ]
+      }
+    ]
+  }
+}

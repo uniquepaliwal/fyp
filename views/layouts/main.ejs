@@ -46,22 +46,25 @@
       overflow-y: auto;
     }
   </style>
+  <link rel="stylesheet" href="/dmxAppConnect/dmxDatePicker/daterangepicker.min.css" />
+  <script src="/dmxAppConnect/dmxDatePicker/daterangepicker.min.js" defer></script>
+  <link rel="stylesheet" href="/dmxAppConnect/dmxDatePicker/dmxDatePicker.css" />
+  <script src="/dmxAppConnect/dmxDatePicker/dmxDatePicker.js" defer></script>
+  <link rel="stylesheet" href="/dmxAppConnect/dmxDropzone/dmxDropzone.css" />
+  <script src="/dmxAppConnect/dmxDropzone/dmxDropzone.js" defer></script>
+  <style>
+    .bg-image {
+      background: #1c77bd;
+    }
+
+    .bg-whole {
+      background: #E8F9FF;
+    }
+  </style>
 </head>
 
-<body is="dmx-app" id="main">
-  <!-- Socket Programming -->
-  <dmx-socket id="socket_main" dmx-on:connect="notifies_main.success('Connected to the server.')" dmx-on:message.chat_message="run([{condition:{outputType:'boolean',if:`$event[\'type-ad\']==\'waiting-message\'`,then:{steps:{run:{name:'savelist',outputType:'text',action:`scChatListWaiting.load({})`}}}}},{condition:{outputType:'boolean',if:`$event[\'type-ad\']==\'direct-message\'`,then:{steps:[{run:{name:'listsave',outputType:'text',action:`scChatListChating.load({})`}},{runJS:{name:'playSound',outputType:'text',function:'playSound'}}]}}},{condition:{outputType:'boolean',if:`$event.chat_room_id==ddChatsChating.data.chat_room_id||$event.chat_room_id==ddChatsWaitingRoom.data.chat_room_id`,then:{steps:{runJS:{name:'appendNewMessage',outputType:'text',function:'handleServerMessage',args:[`$event.message`]}}}}}])" dmx-on:message.new_support_required="run([{runJS:{name:'playSoundSupport',outputType:'text',function:'playSoundSupport'}},{run:{outputType:'text',action:`notifies_main.info(\'New Chat waiting in Waiting Room!\')`}},{run:{outputType:'text',action:`scChatListWaiting.load({})`}}])" dmx-on:message.chat-ended-by-user="run([{run:{outputType:'text',action:`scChatListTranscripts.load({})`}},{run:{outputType:'text',action:`scChatListChating.load({})`}}])"></dmx-socket>
+<body is="dmx-app" id="main" class="bg-whole">
 
-  <!-- dd and vars -->
-  <!-- waiting -->
-  <dmx-data-detail id="ddChatsWaitingRoom" dmx-bind:data="scChatListWaiting.data.finalChatList" key="chat_room_id"></dmx-data-detail>
-  <dmx-value id="varddChatsWaitingRoom" dmx-bind:value="ddChatsWaitingRoom.data" dmx-on:updated="run([{runJS:{name:'handleul',outputType:'text',function:'removeAllUL'}},{run:{outputType:'text',action:`scMessagesWaiting.load({chat_id: ddChatsWaitingRoom.data.chat_room_id})`}}])"></dmx-value>
-  <!-- transcripts -->
-  <dmx-data-detail id="ddChatsTranscripts" dmx-bind:data="scChatListTranscripts.data.finalChatList" key="chat_room_id"></dmx-data-detail>
-  <dmx-value id="varddChatsTranscripts" dmx-bind:value="ddChatsTranscripts.data" dmx-on:updated="run([{runJS:{name:'handleul',outputType:'text',function:'removeAllUL'}},{run:{outputType:'text',action:`scMessagesTranscripts.load({chat_id: ddChatsTranscripts.data.chat_room_id, last_message_time: ddChatsTranscripts.data.message_time})`}}])"></dmx-value>
-  <!-- chatbot -->
-  <dmx-data-detail id="ddChatsChating" dmx-bind:data="scChatListChating.data.finalChatList" key="chat_room_id"></dmx-data-detail>
-  <dmx-value id="varddChatsChating" dmx-bind:value="ddChatsChating.data" dmx-on:updated="run([{runJS:{name:'handleul',outputType:'text',function:'removeAllUL'}},{run:{outputType:'text',action:`scMessagesChating.load({chat_id: ddChatsChating.data.chat_room_id})`}}])"></dmx-value>
 
   <!-- notification imports -->
   <dmx-notifications id="notifies_main"></dmx-notifications>
@@ -69,18 +72,6 @@
   <!-- server connects -->
   <dmx-serverconnect id="scLogout" url="/api/users/logout" dmx-on:success="browser_main.goto('/login')" noload="true"></dmx-serverconnect>
   <dmx-serverconnect id="scContent" url="/api/common/content" dmx-on:unauthorized="browser_main.goto('/login')"></dmx-serverconnect>
-  <!-- waiting -->
-  <dmx-serverconnect id="scMessagesWaiting" url="/api/chats/chats-support-waiting" noload="true" dmx-on:success="run({runJS:{name:'scrollToBottom',outputType:'text',function:'scrollToBottom'}})"></dmx-serverconnect>
-  <dmx-serverconnect id="scChatListWaiting" url="/api/chats/chats-list-support-waiting" dmx-on:unauthorized="browser_main.goto('/login')"></dmx-serverconnect>
-  <dmx-serverconnect id="scAcceptChatsWaiting" url="/api/chats/chats-accept-new" dmx-on:success="notifies_main.success('Chat accepted. Please visit chats to see it.');scChatListChating.load({})" dmx-on:error="notifies_main.danger('Something went wrong! Please try again after a refresh.')" noload="true" dmx-on:unauthorized="notifies_main.info('Chat already taken!');scChatListWaiting.load({})"></dmx-serverconnect>
-  <!-- transcripts -->
-  <dmx-serverconnect id="scMessagesTranscripts" url="/api/chats/chats-support" noload="true" dmx-on:success="run({runJS:{name:'scrollToBottom',outputType:'text',function:'scrollToBottom'}})"></dmx-serverconnect>
-  <dmx-serverconnect id="scChatListTranscripts" url="/api/chats/chats-list-support-transcripts" dmx-on:unauthorized="browser_main.goto('/login')"></dmx-serverconnect>
-  <dmx-serverconnect id="scTrascriptsDownload" url="/api/chats/chats-transcripts-download" dmx-on:success="notifies_main.success('File downloading!')" noload="true" dmx-on:unauthorized="notifies_main.warning('No data to download!')"></dmx-serverconnect>
-  <!-- chatbot page -->
-  <dmx-serverconnect id="scMessagesChating" url="/api/chats/chats-support" noload="true" dmx-on:success="run({runJS:{name:'scrollToBottom',outputType:'text',function:'scrollToBottom'}})"></dmx-serverconnect>
-  <dmx-serverconnect id="scChatListChating" url="/api/chats/chats-list-support" dmx-on:unauthorized="browser_main.goto('/login')"></dmx-serverconnect>
-  <dmx-serverconnect id="scEndChat" url="/api/chats/chats-end-chat" noload="true" dmx-on:success="notifies_main.success('Chat ended. Please visit transcipt to see the history.');scChatListTranscripts.load({})" dmx-on:error="notifies_main.danger('Something went wrong! Please try again after a refresh.')"></dmx-serverconnect>
 
   <!-- browser -->
   <div is="dmx-browser" id="browser_main"></div>
@@ -88,51 +79,66 @@
   <div id="timetracker-layout" class="theme-indigo">
 
     <!-- sidebar -->
-    <div class="sidebar px-4 py-4 py-md-5 me-0">
+    <div class="sidebar px-4 py-4 py-md-5 me-0 bg-image">
       <div class="d-flex flex-column h-100">
 
-        <a href="/chatbot" class="mb-0 brand-icon">
-          <!-- <span class="logo-icon">
-          </span> -->
-          <span class="logo-text"><img src="assets/notfound/logo-primary.png" alt="icon-logo"></span>
+
+        <a href="/chatbot" class="mb-0 brand-icon mx-auto">
+          <img src="assets/images/Animation.gif" alt="Animated GIF">
         </a>
 
-        <!-- Menu: main ul -->
 
-        <div is="dmx-repeat" id="rMenu" dmx-bind:repeat="scContent.data.qMenu" class="menu-list mt-3">
-          <div class="menu-item" dmx-show="sub_menu[0].e && !menu_group">
-            <span class="m-link" dmx-class:active="browser_main.location.pathname=='sub_menu[0].page_url'">
+
+        <!-- Menu: main ul -->
+        <div id="rMenu" class="menu-list ">
+          <div class="menu-item">
+            <span class="m-link" dmx-class:active="browser_main.location.pathname=='landing'">
               <span class="menu-icon me-1 d-flex justify-content-center align-items-center">
-                <i dmx-bind:class="sub_menu[0].page_icon+' fs-5'"></i>
+                <i class="icofont-home fs-5"></i>
               </span>
-              <a class="m-link cursor-pointer" dmx-hide="menu_group" dmx-bind:href="sub_menu[0].page_url" dmx-bind:title="sub_menu[0].page_name" internal="true">
-                <span>{{sub_menu[0].display_name}}</span>
+              <a class="m-link cursor-pointer" href="/landing" title="HOME" internal="true">
+                <span>Home</span>
               </a>
             </span>
           </div>
-        </div>
-
-        <div id="after-menu-logout" class="menu-list">
           <div class="menu-item">
-            <span class="m-link">
+            <span class="m-link" dmx-class:active="browser_main.location.pathname=='chatbot'">
+              <span class="menu-icon me-1 d-flex justify-content-center align-items-center">
+                <i class="icofont-chat fs-5"></i>
+              </span>
+              <a class="m-link cursor-pointer" href="/chat" title="CHATS" internal="true">
+                <span>Chats</span>
+              </a>
+            </span>
+          </div>
+          <div class="menu-item">
+            <span class="m-link" dmx-class:active="browser_main.location.pathname=='sub_menu[0].page_url'">
+              <span class="menu-icon me-1 d-flex justify-content-center align-items-center">
+                <i class="icofont-upload fs-5"></i>
+              </span>
+              <a class="m-link cursor-pointer" href="/upload" title="UPLOAD" internal="true">
+                <span>Upload</span>
+              </a>
+            </span>
+          </div>
+          <div class="menu-item">
+            <span class="m-link" dmx-class:active="browser_main.location.pathname=='sub_menu[0].page_url'">
               <span class="menu-icon me-1 d-flex justify-content-center align-items-center">
                 <i class="icofont-logout fs-5"></i>
               </span>
-              <a class="m-link cursor-pointer" dmx-hide="menu_group" internal="true" dmx-on:click="scLogout.load({})">
+              <a class="m-link cursor-pointer" dmx-on:click="scLogout.load({})" title="logout" internal="true">
                 <span>logout</span>
               </a>
             </span>
           </div>
-        </div>
-        <div id=" after-menu-profile" class="menu-list">
-          <div class="menu-item">
+          <div class=" mt-1">
             <span class="m-link">
               <span class="menu-icon me-1 d-flex justify-content-center align-items-center">
                 <i class="icofont-user fs-5"></i>
               </span>
-              <a class="text-white" dmx-hide="menu_group" internal="true">
+              <div class="">
                 <span>{{scContent.data.username}}</span>
-              </a>
+              </div>
             </span>
           </div>
         </div>
@@ -141,9 +147,9 @@
 
 
     <!-- main body area -->
-    <div class="main">
+    <div class="main bg-whole" style="background-color:white !important;">
       <div is="dmx-view" id="content" class="body d-flex">
-        <div class="container-xxl p-0">
+        <div class="container-xxl p-0 ">
 
           <%- await include(content, locals); %>
 

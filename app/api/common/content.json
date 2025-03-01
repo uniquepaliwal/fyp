@@ -14,15 +14,6 @@
   "exec": {
     "steps": [
       {
-        "name": "checkLogin",
-        "module": "core",
-        "action": "exec",
-        "options": {
-          "exec": "check-access"
-        },
-        "output": true
-      },
-      {
         "name": "identity",
         "module": "auth",
         "action": "identify",
@@ -33,60 +24,14 @@
         "meta": []
       },
       {
-        "name": "qMenu",
-        "module": "dbupdater",
-        "action": "custom",
-        "options": {
-          "connection": "db",
-          "sql": {
-            "query": "select menu_group, menu_item,group_icon, min(sort_order) as sort_order, array_to_json(array_agg(X)) as sub_menu from (\nselect A.menu_group, coalesce(A.menu_group, A.rule_name) as menu_item, A.rule_name as page_name, display_name, A.page_url,A.group_icon, A.page_icon, A.sort_order,B.c,B.r,B.u,B.d,B.e\nfrom app.m_rule A \njoin app.p_role_rule B on B.rule_id = A.rule_id\njoin app.m_user C on C.role_id = B.role_id \n  where C.user_id = :P1 and A.deleted_on is null and A.sort_order is not null and B.e order by A.sort_order\n) X group by menu_group, menu_item,group_icon order by sort_order;",
-            "params": [
-              {
-                "name": ":P1",
-                "value": "{{identity}}",
-                "recid": 1
-              }
-            ]
-          }
-        },
-        "output": true,
-        "meta": [
-          {
-            "name": "menu_group",
-            "type": "text"
-          },
-          {
-            "name": "menu_item",
-            "type": "text"
-          },
-          {
-            "name": "group_icon",
-            "type": "text"
-          },
-          {
-            "name": "sort_order",
-            "type": "number"
-          },
-          {
-            "name": "sub_menu",
-            "type": "text"
-          }
-        ],
-        "outputType": "array"
-      },
-      {
         "name": "query",
         "module": "dbconnector",
-        "action": "select",
+        "action": "single",
         "options": {
           "connection": "db",
           "sql": {
             "type": "select",
             "columns": [
-              {
-                "table": "app.m_user",
-                "column": "role_id"
-              },
               {
                 "table": "app.m_user",
                 "column": "username"
@@ -128,26 +73,24 @@
                       "name": "user_id"
                     }
                   },
-                  "operation": "="
+                  "operation": "=",
+                  "table": "app.m_user"
                 }
               ],
               "conditional": null,
               "valid": true
             },
-            "query": "select \"role_id\", \"username\" from \"app\".\"m_user\" where \"app\".\"m_user\".\"user_id\" = ?"
+            "query": "select \"username\" from \"app\".\"m_user\" where \"app\".\"m_user\".\"user_id\" = ?"
           }
         },
         "meta": [
-          {
-            "type": "number",
-            "name": "role_id"
-          },
           {
             "type": "text",
             "name": "username"
           }
         ],
-        "outputType": "array"
+        "outputType": "object",
+        "type": "dbconnector_single"
       },
       {
         "name": "username",
@@ -155,85 +98,7 @@
         "action": "setvalue",
         "options": {
           "key": "username",
-          "value": "{{query[0].username}}"
-        },
-        "meta": [],
-        "outputType": "text",
-        "output": true
-      },
-      {
-        "name": "role_id",
-        "module": "core",
-        "action": "setvalue",
-        "options": {
-          "key": "role_id",
-          "value": "{{query[0].role_id}}"
-        },
-        "meta": [],
-        "outputType": "text",
-        "output": true
-      },
-      {
-        "name": "date",
-        "module": "core",
-        "action": "setvalue",
-        "options": {
-          "value": "{{NOW_UTC}}"
-        },
-        "meta": [],
-        "outputType": "text",
-        "output": true
-      },
-      {
-        "name": "day",
-        "module": "core",
-        "action": "setvalue",
-        "options": {
-          "value": "{{NOW_UTC.formatDate('d', false)}}"
-        },
-        "meta": [],
-        "outputType": "text",
-        "output": true
-      },
-      {
-        "name": "month_date",
-        "module": "core",
-        "action": "setvalue",
-        "options": {
-          "value": "{{NOW_UTC.dateAdd('days', -day.toNumber()+1)}}"
-        },
-        "meta": [],
-        "outputType": "text",
-        "output": true
-      },
-      {
-        "name": "start_date",
-        "module": "core",
-        "action": "setvalue",
-        "options": {
-          "value": "{{month_date.formatDate('yyyy-MM-dd', false)}}"
-        },
-        "meta": [],
-        "outputType": "text",
-        "output": true
-      },
-      {
-        "name": "month",
-        "module": "core",
-        "action": "setvalue",
-        "options": {
-          "value": "{{NOW_UTC.dateAdd('months', -1).formatDate('yyyy-MM', false)}}"
-        },
-        "meta": [],
-        "outputType": "text",
-        "output": true
-      },
-      {
-        "name": "curr_month",
-        "module": "core",
-        "action": "setvalue",
-        "options": {
-          "value": "{{NOW_UTC.formatDate('yyyy-MM', false)}}"
+          "value": "{{query.username}}"
         },
         "meta": [],
         "outputType": "text",

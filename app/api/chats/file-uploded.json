@@ -1,0 +1,116 @@
+{
+  "meta": {
+    "$_GET": [
+      {
+        "type": "text",
+        "name": "sort"
+      },
+      {
+        "type": "text",
+        "name": "dir"
+      },
+      {
+        "type": "text",
+        "name": "file_path"
+      }
+    ]
+  },
+  "exec": {
+    "steps": {
+      "name": "query",
+      "module": "dbconnector",
+      "action": "select",
+      "options": {
+        "connection": "db",
+        "sql": {
+          "type": "select",
+          "columns": [
+            {
+              "table": "MP",
+              "column": "created_on"
+            },
+            {
+              "table": "MP",
+              "column": "filename"
+            },
+            {
+              "table": "MP",
+              "column": "file_path"
+            },
+            {
+              "table": "MU",
+              "column": "username"
+            },
+            {
+              "table": "MP",
+              "column": "pdf_id"
+            }
+          ],
+          "params": [],
+          "table": {
+            "name": "app.m_pdf",
+            "alias": "MP"
+          },
+          "primary": "pdf_id",
+          "joins": [
+            {
+              "table": "app.m_user",
+              "column": "*",
+              "alias": "MU",
+              "type": "LEFT",
+              "clauses": {
+                "condition": "AND",
+                "rules": [
+                  {
+                    "table": "MU",
+                    "column": "user_id",
+                    "operator": "equal",
+                    "operation": "=",
+                    "value": {
+                      "table": "MP",
+                      "column": "created_by"
+                    }
+                  }
+                ]
+              },
+              "primary": "user_id"
+            }
+          ],
+          "orders": [
+            {
+              "table": "MP",
+              "column": "created_on",
+              "direction": "ASC",
+              "recid": 1
+            }
+          ],
+          "query": "select \"MP\".\"created_on\", \"MP\".\"filename\", \"MP\".\"file_path\", \"MU\".\"username\", \"MP\".\"pdf_id\" from \"app\".\"m_pdf\" as \"MP\" left join \"app\".\"m_user\" as \"MU\" on \"MU\".\"user_id\" = \"MP\".\"created_by\" order by \"MP\".\"created_on\" ASC"
+        }
+      },
+      "output": true,
+      "meta": [
+        {
+          "type": "datetime",
+          "name": "created_on"
+        },
+        {
+          "type": "text",
+          "name": "filename"
+        },
+        {
+          "type": "text",
+          "name": "file_path"
+        },
+        {
+          "type": "text",
+          "name": "username"
+        },
+        {
+          "type": "text",
+          "name": "pdf_id"
+        }
+      ],
+      "outputType": "array"
+    }
+  }
+}

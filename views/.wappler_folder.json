@@ -50,5 +50,13 @@
   "waiting-room.ejs": {
     "layoutPage": "main",
     "description": ""
+  },
+  "Upload.ejs": {
+    "layoutPage": "main",
+    "description": ""
+  },
+  "landing.ejs": {
+    "layoutPage": "main",
+    "description": ""
   }
 }

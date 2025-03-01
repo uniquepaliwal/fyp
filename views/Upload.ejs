@@ -1,7 +1,7 @@
 <!-- Wappler include head-page="layouts/main" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="Upload" appConnect="local" components="{dmxBootstrap5Navigation:{},dmxBootstrap5Modal:{},dmxDatePicker:{},dmxFormatter:{},dmxDataTraversal:{}}" jquery_slim_35="cdn" moment_2="cdn" -->
 <dmx-data-detail id="ddDelete" dmx-bind:data="scFileList.data.query" key="pdf_id"></dmx-data-detail>
 <dmx-serverconnect id="scFileList" url="/api/chats/file-uploded"></dmx-serverconnect>
-<dmx-serverconnect id="scDeleteFile" url="/api/chats/file-delete" dmx-on:success="notifies_main.success('File deleted!');scFileList.load({})" noload="true" dmx-on:error="notifies_main.warning('Error deleting file, please try again later!')"></dmx-serverconnect>
+<dmx-serverconnect id="scDeleteFile" url="/api/chats/file-delete" dmx-on:success="notifies_main.success('File deleted!');scFileList.load({});modalDelete.hide()" noload="true" dmx-on:error="notifies_main.warning('Error deleting file, please try again later!')"></dmx-serverconnect>
 
 <meta name="ac:route" content="/Upload">
 <style>
@@ -212,7 +212,7 @@
 
             <div class="modal-footer">
                 <button type="button" class="btn btn-sm  btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-sm btn-danger color-fff" dmx-on:click="scDeleteFile.load({pdf_id: ddDelete.data.pdf_id});modalDelete.hide()">Delete</button>
+                <button type="button" class="btn btn-sm btn-danger color-fff" dmx-on:click="scDeleteFile.load({pdf_id: ddDelete.data.pdf_id})" dmx-bind:disabled="scDeleteFile.state.executing">Delete<span class="spinner-border spinner-border spin_child ms-2" style="width:17px; height:17px" role="status" dmx-show="scDeleteFile.state.executing"></span></button>
             </div>
         </div>
     </div>
@@ -231,7 +231,9 @@
 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary color-fff">Upload</button>
+                    <button type="submit" class="btn btn-primary color-fff" dmx-bind:disabled="state.executing">Upload
+                        <span class="spinner-border spinner-border spin_child ms-2" style="width:17px; height:17px" role="status" dmx-show="state.executing"></span>
+                    </button>
                 </div>
             </form>
         </div>

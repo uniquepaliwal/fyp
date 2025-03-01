@@ -80,11 +80,10 @@
             {
               "table": "MP",
               "column": "created_on",
-              "direction": "ASC",
-              "recid": 1
+              "direction": "DESC"
             }
           ],
-          "query": "select \"MP\".\"created_on\", \"MP\".\"filename\", \"MP\".\"file_path\", \"MU\".\"username\", \"MP\".\"pdf_id\" from \"app\".\"m_pdf\" as \"MP\" left join \"app\".\"m_user\" as \"MU\" on \"MU\".\"user_id\" = \"MP\".\"created_by\" order by \"MP\".\"created_on\" ASC"
+          "query": "select \"MP\".\"created_on\", \"MP\".\"filename\", \"MP\".\"file_path\", \"MU\".\"username\", \"MP\".\"pdf_id\" from \"app\".\"m_pdf\" as \"MP\" left join \"app\".\"m_user\" as \"MU\" on \"MU\".\"user_id\" = \"MP\".\"created_by\" order by \"MP\".\"created_on\" DESC"
         }
       },
       "output": true,

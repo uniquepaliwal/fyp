@@ -106,13 +106,22 @@
           "then": {
             "steps": [
               {
-                "name": "fileRemove",
-                "module": "fs",
-                "action": "remove",
+                "name": "",
+                "module": "core",
+                "action": "trycatch",
                 "options": {
-                  "path": "{{query.file_path}}"
-                },
-                "outputType": "boolean"
+                  "try": {
+                    "steps": {
+                      "name": "fileRemove",
+                      "module": "fs",
+                      "action": "remove",
+                      "options": {
+                        "path": "{{query.file_path}}"
+                      },
+                      "outputType": "boolean"
+                    }
+                  }
+                }
               },
               {
                 "name": "delete",

@@ -51,14 +51,24 @@ function getUTCDateTime() {
     const utcTime = currentDate.toISOString().split('T')[1].split('.')[0];
     return { utcDate, utcTime };
 }
-function handleServerMessage(message) {
+function handleServerMessage(message, type) {
     console.log("called")
     const { utcDate, utcTime } = getUTCDateTime()
     const messageType = 'Server'
     const path_on = dmx.parse('browser_main.location.href')
     const endurl = path_on.split('/').pop();
     const chatInitial = 'FG'
-    appendMessage(message, utcDate, utcTime, messageType, chatInitial);
+    if (type == 'array') {
+        message.map(mes => {
+            const pageNumber = mes.metadata.loc.pageNumber;
+            const textContent = mes.text.replace(/\n/g, ', ');
+            const fileName = mes.metadata.filename;
+            const displayText = `Page ${pageNumber}: ${textContent} (Source: ${fileName})`;
+            appendMessage(displayText, utcDate, utcTime, messageType, chatInitial)
+        })
+    } else {
+        appendMessage(message, utcDate, utcTime, messageType, chatInitial);
+    }
 
 }
 function removeAllUL() {

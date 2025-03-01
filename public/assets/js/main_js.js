@@ -51,23 +51,15 @@ function getUTCDateTime() {
     const utcTime = currentDate.toISOString().split('T')[1].split('.')[0];
     return { utcDate, utcTime };
 }
-function handleServerMessage(message, intials) {
+function handleServerMessage(message) {
     console.log("called")
     const { utcDate, utcTime } = getUTCDateTime()
     const messageType = 'Server'
     const path_on = dmx.parse('browser_main.location.href')
     const endurl = path_on.split('/').pop();
-    console.log(endurl)
-    if (endurl == 'chatbot') {
-        const ddChatsChating = dmx.parse('ddChatsChating.data')
-        const chatInitial = ddChatsChating.end_user_name ? ddChatsChating.end_user_name.split(' ').map(value => value.substr(0, 1).toUpperCase()).join('') : "";
-        appendMessage(message, utcDate, utcTime, messageType, chatInitial);
-    } else if (endurl == 'waiting-room') {
-        console.log("made here")
-        const ddChatsWaitingRoom = dmx.parse('ddChatsWaitingRoom.data')
-        const chatInitial = ddChatsWaitingRoom.end_user_name ? ddChatsWaitingRoom.end_user_name.split(' ').map(value => value.substr(0, 1).toUpperCase()).join('') : "";
-        appendMessage(message, utcDate, utcTime, messageType, chatInitial);
-    }
+    const chatInitial = 'FG'
+    appendMessage(message, utcDate, utcTime, messageType, chatInitial);
+
 }
 function removeAllUL() {
     console.log("removing");

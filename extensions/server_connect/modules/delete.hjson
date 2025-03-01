@@ -1,0 +1,43 @@
+{
+    type:'delete_sup',
+    module:'delete',
+    action:'final_response',
+    groupTitle:'added extensions',
+    groupIcon:'fas fa-cogs',
+    title:'delete supabase',
+    icon:'fas fa-cogs',
+    dataPickObject:true,
+    properties:[
+            {
+                group:'Module Inputs',
+        variables:[
+            {
+                name:'actionName',
+                optionName:'name',
+                title:'Name',
+                type:'text',
+                required:true ,
+                defaultValue:'',
+                baseName:'module1',
+            },
+            {
+                name:'file_id',
+                optionName:'file_id',
+                title:'file id',
+                type:'text',
+                required:true,
+                defaultValue:'',
+                serverDataBindings:true,
+                help:'Enter the user query here'
+            },
+            {
+                name:'output',
+                optionName:'output',
+                title:'Output',
+                type:'boolean',
+                defaultValue: false
+            }
+        ]
+            } 
+    ]
+}

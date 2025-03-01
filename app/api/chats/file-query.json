@@ -1,0 +1,26 @@
+{
+  "meta": {
+    "options": {
+      "linkedFile": "/views/chatbot.ejs",
+      "linkedForm": "apiform1"
+    },
+    "$_POST": [
+      {
+        "type": "text",
+        "fieldName": "tsend",
+        "name": "tsend"
+      }
+    ]
+  },
+  "exec": {
+    "steps": {
+      "name": "module1",
+      "module": "query",
+      "action": "final_response",
+      "options": {
+        "userQuery": "{{$_POST.tsend}}"
+      },
+      "output": true
+    }
+  }
+}

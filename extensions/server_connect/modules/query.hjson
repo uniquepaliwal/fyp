@@ -1,10 +1,10 @@
 {
     type:'gpt_response',
-    module:'gptuser',
+    module:'query',
     action:'final_response',
-    groupTitle:'get gpt response',
+    groupTitle:'added extensions',
     groupIcon:'fas fa-cogs',
-    title:'response from user query by gpt',
+    title:'gpt response',
     icon:'fas fa-cogs',
     dataPickObject:true,
     properties:[

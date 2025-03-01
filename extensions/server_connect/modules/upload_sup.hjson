@@ -1,0 +1,53 @@
+{
+    type:'upload_sup',
+    module:'upload_sup',
+    action:'upload_sup',
+    groupTitle:'added extensions',
+    groupIcon:'fas fa-cogs',
+    title:'upload file',
+    icon:'fas fa-cogs',
+    dataPickObject:true,
+    properties:[
+            {
+                group:'Module Inputs',
+        variables:[
+            {
+                name:'actionName',
+                optionName:'name',
+                title:'Name',
+                type:'text',
+                required:true ,
+                defaultValue:'',
+                baseName:'module1',
+            },
+            {
+                name:'file_path',
+                optionName:'file_path',
+                title:'file path',
+                type:'text',
+                required:true,
+                defaultValue:'',
+                serverDataBindings:true,
+                help:'Enter the user query here'
+            },
+            {
+                name:'file_id',
+                optionName:'file_id',
+                title:'file id',
+                type:'text',
+                required:true,
+                defaultValue:'',
+                serverDataBindings:true,
+                help:'Enter the user query here'
+            },
+            {
+                name:'output',
+                optionName:'output',
+                title:'Output',
+                type:'boolean',
+                defaultValue: false
+            }
+        ]
+            } 
+    ]
+}

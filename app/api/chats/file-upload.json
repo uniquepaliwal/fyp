@@ -80,7 +80,7 @@
           }
         ],
         "outputType": "file",
-        "output": false
+        "output": true
       },
       {
         "name": "insertIntoDb",
@@ -95,25 +95,29 @@
                 "table": "app.m_pdf",
                 "column": "filename",
                 "type": "text",
-                "value": "{{upload.name}}"
+                "value": "{{upload.name}}",
+                "recid": 1
               },
               {
                 "table": "app.m_pdf",
                 "column": "file_path",
                 "type": "text",
-                "value": "{{upload.path}}"
+                "value": "{{upload.path}}",
+                "recid": 2
               },
               {
                 "table": "app.m_pdf",
                 "column": "created_by",
                 "type": "text",
-                "value": "{{identity}}"
+                "value": "{{identity}}",
+                "recid": 3
               },
               {
                 "table": "app.m_pdf",
                 "column": "created_on",
                 "type": "datetime",
-                "value": "{{NOW_UTC}}"
+                "value": "{{NOW_UTC}}",
+                "recid": 4
               }
             ],
             "table": "app.m_pdf",
@@ -157,6 +161,15 @@
             "type": "number"
           }
         ]
+      },
+      {
+        "name": "module1",
+        "module": "upload_sup",
+        "action": "upload_sup",
+        "options": {
+          "file_path": "{{upload.path}}",
+          "file_id": "{{insertIntoDb.identity}}"
+        }
       }
     ]
   }

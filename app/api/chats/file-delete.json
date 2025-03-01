@@ -20,7 +20,7 @@
       {
         "name": "query",
         "module": "dbconnector",
-        "action": "select",
+        "action": "single",
         "options": {
           "connection": "db",
           "sql": {
@@ -28,7 +28,13 @@
             "columns": [
               {
                 "table": "app.m_pdf",
-                "column": "file_path"
+                "column": "file_path",
+                "recid": 1
+              },
+              {
+                "table": "app.m_pdf",
+                "column": "pdf_id",
+                "recid": 2
               }
             ],
             "params": [
@@ -67,13 +73,14 @@
                       "name": "pdf_id"
                     }
                   },
-                  "operation": "="
+                  "operation": "=",
+                  "table": "app.m_pdf"
                 }
               ],
               "conditional": null,
               "valid": true
             },
-            "query": "select \"file_path\" from \"app\".\"m_pdf\" where \"app\".\"m_pdf\".\"pdf_id\" = ?"
+            "query": "select \"file_path\", \"pdf_id\" from \"app\".\"m_pdf\" where \"app\".\"m_pdf\".\"pdf_id\" = ?"
           }
         },
         "output": true,
@@ -81,16 +88,21 @@
           {
             "type": "text",
             "name": "file_path"
+          },
+          {
+            "type": "text",
+            "name": "pdf_id"
           }
         ],
-        "outputType": "array"
+        "outputType": "object",
+        "type": "dbconnector_single"
       },
       {
         "name": "",
         "module": "core",
         "action": "condition",
         "options": {
-          "if": "{{query[0].file_path!=null}}",
+          "if": "{{query.file_path!=null}}",
           "then": {
             "steps": [
               {
@@ -98,7 +110,7 @@
                 "module": "fs",
                 "action": "remove",
                 "options": {
-                  "path": "{{query[0].file_path}}"
+                  "path": "{{query.file_path}}"
                 },
                 "outputType": "boolean"
               },
@@ -148,6 +160,14 @@
                     "type": "number"
                   }
                 ]
+              },
+              {
+                "name": "module1",
+                "module": "delete",
+                "action": "final_response",
+                "options": {
+                  "file_id": "{{$_GET.pdf_id}}"
+                }
               }
             ]
           }
